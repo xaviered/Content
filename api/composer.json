@@ -1,0 +1,13 @@
+{
+    "name": "beholder/api",
+    "description": "Beholder main API",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Edison Calle",
+            "email": "edsion@ixavier.com"
+        }
+    ],
+    "require": {}
+}

@@ -1,0 +1,16 @@
+{
+  "name": "ixavier/beholder",
+  "description": "In-depth analysis for your sports team",
+  "type": "composer-plugin",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Edison Calle",
+      "email": "edison@ixavier.com"
+    }
+  ],
+  "require": {
+  },
+  "repositories": [
+  ]
+}
