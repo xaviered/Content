@@ -26,10 +26,9 @@ sudo ln -s beholder/sites-enabled sites-enabled
 
 # change php configs
 sudo mkdir /etc/php/7.0/fpm/backup && cd /etc/php/7.0/fpm
-sudo mv -f php.ini backup/ && sudo mv php-fpm.conf backup/
+sudo mv -f php.ini backup/
 sudo ln -s /home/local/beholder/server/vagrant/configs/php beholder
 sudo ln -s beholder/php.ini php.ini
-sudo ln -s beholder/php-fpm.conf php-fpm.conf
 # @todo: do the same for /etc/php/7.0/fpm/pool.d/www.conf file
 
 # add host-names

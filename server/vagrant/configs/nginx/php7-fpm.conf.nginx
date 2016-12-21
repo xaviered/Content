@@ -1,8 +1,0 @@
-if ($script_name = false) {
-    set $script_name $fastcgi_script_name;
-}
-
-fastcgi_pass    unix:/run/php/php7.0-fpm.sock;
-fastcgi_param	SCRIPT_FILENAME $document_root$script_name;
-fastcgi_param	SCRIPT_NAME		$script_name;
-fastcgi_index   index.php;
