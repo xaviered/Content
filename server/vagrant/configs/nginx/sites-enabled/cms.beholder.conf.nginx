@@ -19,21 +19,25 @@
 
 server {
 	listen 8080;
-	server_name api.beholder.ixavier.local;
-	root /home/vagrant/beholder/api/public;
+	server_name cms.beholder.ixavier.local;
+	root /home/vagrant/beholder/cms/public;
 	index index.html index.htm index.php;
 
-	# redirect root to current version
 	location / {
-		return 302 $scheme://$server_name/v1$request_uri;
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ =404;
+		# Uncomment to enable naxsi on this location
+		# include /etc/nginx/naxsi.rules
 	}
 
-	# @todo: Make it dynamic, so that it reads corresponding version file
-	# api endpoint
-	location ~ (^/v1[/\?]?$)|(^/v1/(.*)) {
-		set $script_name "/v1.php";
-		include fastcgi_params;
+	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+	#
+	location ~ [^/]\.php(/|$) {
+		try_files $uri =404;
+		fastcgi_split_path_info ^(.+\.php)(/.+)$;
 		include beholder/php7-fpm.conf.nginx;
+		include fastcgi_params;
 	}
 }
 

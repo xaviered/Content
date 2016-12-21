@@ -18,14 +18,18 @@ cp /home/local/beholder/server/vagrant/configs/home/.bash_profile /home/vagrant
 echo "PATH=/home/vagrant/.composer/vendor/bin:$PATH" >> /home/vagrant/.bash_profile
 
 # add HTTP server configs/vms
-sudo mv -f /etc/nginx/nginx.conf /etc/nginx/nginx.conf-backup
-sudo ln -s /home/local/beholder/server/vagrant/configs/nginx/nginx.conf /etc/nginx/nginx.conf
-sudo mv -f /etc/nginx/sites-enabled /etc/nginx/sites-enabled-backup
-sudo ln -s /home/local/beholder/server/vagrant/configs/nginx/sites-enabled /etc/nginx/sites-enabled
-sudo mv -f /etc/php/7.0/fpm/php.ini /etc/php/7.0/fpm/php.ini-backup
-sudo ln -s /home/local/beholder/server/vagrant/configs/php/php.ini /etc/php/7.0/fpm/php.ini
-sudo mv -f /etc/php/7.0/fpm/php-fpm.conf /etc/php/7.0/fpm/php-fpm.conf-backup
-sudo ln -s /home/local/beholder/server/vagrant/configs/php/php-fpm.conf /etc/php/7.0/fpm/php-fpm.conf
+sudo mkdir /etc/nginx/backup && cd /etc/nginx
+sudo mv -f nginx.conf backup/ && sudo mv -f sites-enabled backup/
+sudo ln -s /home/local/beholder/server/vagrant/configs/nginx beholder
+sudo ln -s beholder/nginx.conf nginx.conf
+sudo ln -s beholder/sites-enabled sites-enabled
+
+# change php configs
+sudo mkdir /etc/php/7.0/fpm/backup && cd /etc/php/7.0/fpm
+sudo mv -f php.ini backup/ && sudo mv php-fpm.conf backup/
+sudo ln -s /home/local/beholder/server/vagrant/configs/php beholder
+sudo ln -s beholder/php.ini php.ini
+sudo ln -s beholder/php-fpm.conf php-fpm.conf
 # @todo: do the same for /etc/php/7.0/fpm/pool.d/www.conf file
 
 # add host-names

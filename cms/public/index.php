@@ -1,0 +1,1 @@
+<?php echo "CMS index.php page is working"; ?>
