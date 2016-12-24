@@ -2,8 +2,10 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Response\ApiResponse;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
 
 // @todo: Add all RESTful API actions for a resource of a given type: i.e. game, player, etc
@@ -12,11 +14,14 @@ class ResourceController extends FOSRestController implements ClassResourceInter
     /**
      * Get all resources in collection
      *
-     * @Route("/v1/{type}", name="resource_list")
+     * @Route(
+     *     "/v1/{type}",
+     *     name="resource_list"
+     * )
      */
     public function cgetAction($type)
     {
-
+        return new ApiResponse([]);
     }
 
     /**
@@ -26,7 +31,7 @@ class ResourceController extends FOSRestController implements ClassResourceInter
      */
     public function getAction($type, $slug)
     {
-
+        return new ApiResponse([]);
     }
 
     /**
@@ -36,7 +41,7 @@ class ResourceController extends FOSRestController implements ClassResourceInter
      */
     public function postAction(Request $request, $type)
     {
-
+        return new ApiResponse([]);
     }
 
     /**
@@ -46,7 +51,7 @@ class ResourceController extends FOSRestController implements ClassResourceInter
      */
     public function putAction(Request $request, $type, $slug)
     {
-
+        return new ApiResponse([]);
     }
 
     /**
@@ -66,6 +71,6 @@ class ResourceController extends FOSRestController implements ClassResourceInter
      */
     public function deleteAction(Request $request, $type, $slug)
     {
-
+        return new ApiResponse([]);
     }
 }

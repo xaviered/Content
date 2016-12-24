@@ -3,7 +3,7 @@
 namespace AppBundle\Response;
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use  Symfony\Component\HttpFoundation\JsonResponse;
 
 class ApiResponse extends JsonResponse
 {
@@ -13,20 +13,20 @@ class ApiResponse extends JsonResponse
             'data' => $data,
             'links' => $this->getLinks($currentPage, $totalPages)
         ];
-        parent::__construct($response, 200, $headers);
+        parent::__construct($response, 200, $headers ?? NULL);
     }
 
     private function getLinks($currentPage = 0, $totalPages = 1)
     {
         $request = Request::createFromGlobals();
         $links = [
-            'self' => $request->getRequestUri()
+            'self' => $request->getUri()
         ];
         // has next
         if ($currentPage + 1 < $totalPages) {
             $request->query->set('page', $currentPage + 1);
             // @todo: Will the following call have the updated query params?
-            $links['next'] = $request->getRequestUri();
+            $links['next'] = $request->getUri();
         }
         // has prev
         if ($currentPage - 1 >= 0) {
@@ -36,7 +36,7 @@ class ApiResponse extends JsonResponse
                 $request->query->set('page', $currentPage - 1);
             }
             // @todo: Will the following call have the updated query params?
-            $links['prev'] = $request->getRequestUri();
+            $links['prev'] = $request->getUri();
         }
         return $links;
     }

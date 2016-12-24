@@ -14,7 +14,7 @@ sudo apt-get update -y
 sudo apt-get upgrade -y
 
 # install essentials
-sudo apt-get install -y build-essential nano wget curl git git-core
+sudo apt-get install -y build-essential nano wget curl git git-core libcurl4-openssl-dev pkg-config
 
 # install latest node + npm
 curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
@@ -24,13 +24,14 @@ sudo apt-get install -y nodejs
 sudo npm install -g grunt-cli
 
 # install PHP
-sudo apt-get install -y php7.0 php7.0-fpm php7.0-xml php7.0-curl php7.0-cgi
+sudo apt-get install -y php7.0-dev php7.0-fpm php7.0-xml php7.0-curl php7.0-cgi php-pear
 
 # instal debconf-utils tool
 sudo apt-get install -y debconf-utils
 
 # install mongodb
-sudo apt-get install -y mongodb-org
+sudo apt-get install -y mongodb-org php-mongodb
+sudo pecl install mongodb
 
 ## install nginx
 sudo apt-get install -y nginx
