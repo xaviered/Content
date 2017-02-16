@@ -1,10 +1,13 @@
 <?php
 namespace App\Model;
 
-use App\Events\AppObserver;
+use App\Observers\AppObserver;
 
 class App extends Model
 {
+	/**
+	 * Perform tasks once for all App models
+	 */
 	public static function boot() {
 		self::observe( AppObserver::class );
 	}

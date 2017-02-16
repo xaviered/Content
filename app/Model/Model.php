@@ -19,6 +19,9 @@ abstract class Model extends Moloquent
 	/** Key for last updated date */
 	const UPDATED_AT = 'updatedOn';
 
+	/** Key for deleted date. FYI, updatedBy will be the user that deleted too. */
+	const DELETED_AT = 'deletedOn';
+
 	/** @var bool Do not increment primary key */
 	public $incrementing = false;
 
@@ -27,7 +30,7 @@ abstract class Model extends Moloquent
 	 *
 	 * @var array
 	 */
-	protected $dates = [ 'deleted_at' ];
+	protected $dates = [ 'deletedOn' ];
 
 	/** @var string All primary keys will be slugs */
 	protected $primaryKey = 'slug';
@@ -36,12 +39,12 @@ abstract class Model extends Moloquent
 	protected $fillable = [
 		'slug',
 		'title',
-		'createdOn',
 		'createdBy',
-		'status',
+		'createdOn',
+		'deletedOn',
 		'order',
+		'updatedBy',
 		'updatedOn',
-		'updatedBy'
 	];
 
 	/**
@@ -55,13 +58,30 @@ abstract class Model extends Moloquent
 		$userId = Auth::user() ? Auth::user()->id : 1;
 		$attributes = array_merge( [
 			'createdBy' => $userId,
-			'updatedBy' => $userId,
 			'createdOn' => $time,
+			'updatedBy' => $userId,
 			'updatedOn' => $time,
 			'order' => 1,
-			'status' => 'active'
 		], $attributes );
 
-		return static::newInstance( $attributes );
+		return new static( $attributes );
+	}
+
+	/**
+	 * Perform the actual delete query on this model instance.
+	 *
+	 * @return void
+	 */
+	protected function runSoftDelete()
+	{
+		$query = $this->newQueryWithoutScopes()->where($this->getKeyName(), $this->getKey());
+
+		$this->{$this->getDeletedAtColumn()} = $time = $this->freshTimestamp();
+
+		$updateQuery = [
+			'slug' => $this->slug .= '_deleted_' . $time,
+			$this->getDeletedAtColumn() => $this->fromDateTime($time)
+		];
+		$query->update($updateQuery);
 	}
 }
