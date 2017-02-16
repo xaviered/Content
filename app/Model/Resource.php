@@ -1,6 +1,8 @@
 <?php
 namespace App\Model;
 
+use App\Observers\ResourceObserver;
+
 /**
  * Class Resource holds resources for a particular App
  *
@@ -17,18 +19,6 @@ class Resource extends Model
 	/** @var string Default to content house database */
 	protected $collection = 'contenthouse';
 	protected $table = 'contenthouse';
-
-	/** @var array Allowed mass-fillable fields */
-	protected $fillable = [
-		'slug',
-		'title',
-		'createdOn',
-		'createdBy',
-		'status',
-		'order',
-		'updatedOn',
-		'updatedBy'
-	];
 
 	/**
 	 * Resource constructor.
@@ -50,6 +40,13 @@ class Resource extends Model
 		$this->fillable[] = 'type';
 
 		parent::__construct( $attributes );
+	}
+
+	/**
+	 * Perform tasks once for all Resource models
+	 */
+	public static function boot() {
+		self::observe( ResourceObserver::class );
 	}
 
 	/**

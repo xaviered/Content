@@ -16,14 +16,33 @@ class AppController extends ModelController
 	protected static $modelClass = App::class;
 
 	/**
+	 * Display the specified resource.
+	 *
+	 * @param  App $app
+	 * @return JsonResponse
+	 */
+	public function show( App $app ) {
+		return $this->showModel($app);
+	}
+
+	/**
 	 * Update the specified resource in storage.
 	 *
 	 * @param  Request $request
-	 * @param  App $model
+	 * @param  App $app
 	 * @return JsonResponse
 	 */
 	public function update( Request $request, App $app ) {
-		return parent::updateModel($request, $app);
+		return parent::updateModel( $request, $app );
 	}
 
+	/**
+	 * Remove the specified resource from storage.
+	 *
+	 * @param  App $app
+	 * @return JsonResponse
+	 */
+	public function destroy( App $app ) {
+		return $this->destroyModel( $app );
+	}
 }

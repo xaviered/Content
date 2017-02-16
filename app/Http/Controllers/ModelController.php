@@ -6,6 +6,11 @@ use App\Model\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Class ModelController has helper methods to handle model CRUD methods.
+ *
+ * @package App\Http\Controllers
+ */
 class ModelController extends Controller
 {
 	/** @var string $modelClass Model class to use when creating/finding */
@@ -22,14 +27,6 @@ class ModelController extends Controller
 	}
 
 	/**
-	 * Show the form for creating a new resource.
-	 *
-	 * @return \Illuminate\Http\Response
-	 */
-	public function create() {
-	}
-
-	/**
 	 * Store a newly created resource in storage.
 	 *
 	 * @param  \Illuminate\Http\Request $request
@@ -37,31 +34,25 @@ class ModelController extends Controller
 	 */
 	public function store( Request $request ) {
 		$class = static::$modelClass;
-		/** @var Model $app */
-		$app = $class::create( $request->all() );
-		$app->saveOrFail();
 
-		return new JsonResponse( [ $app, $request->all() ] );
+		$updates = $request->all();
+		unset( $updates[ '_id' ] );
+
+		/** @var Model $app */
+		$app = $class::create( $updates );
+		$result = $app->saveOrFail();
+
+		return new JsonResponse( [ 'success' => $result, 'data' => $app ] );
 	}
 
 	/**
 	 * Display the specified resource.
 	 *
-	 * @param  \App\Model\Model $model
-	 * @return \Illuminate\Http\Response
+	 * @param  Model $model
+	 * @return JsonResponse
 	 */
-	public function show( Model $model ) {
-		//
-	}
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  \App\Model\Model $model
-	 * @return \Illuminate\Http\Response
-	 */
-	public function edit( Model $model ) {
-		//
+	public function showModel( Model $model ) {
+		return new JsonResponse( [ 'data' => $model ] );
 	}
 
 	/**
@@ -72,8 +63,11 @@ class ModelController extends Controller
 	 * @return JsonResponse
 	 */
 	public function updateModel( Request $request, Model $model ) {
-		$model->fill($request->all());
-		$model->saveOrFail();
+		$updates = $request->all();
+
+		// do not update _id
+		unset( $updates[ '_id' ] );
+		$model->update( $updates );
 
 		return new JsonResponse( $model );
 	}
@@ -81,10 +75,12 @@ class ModelController extends Controller
 	/**
 	 * Remove the specified resource from storage.
 	 *
-	 * @param  \App\Model\Model $model
-	 * @return \Illuminate\Http\Response
+	 * @param  Model $model
+	 * @return JsonResponse
 	 */
-	public function destroy( Model $model ) {
-		//
+	public function destroyModel( Model $model ) {
+		$result = $model->delete();
+
+		return new JsonResponse( [ 'success' => $result, 'data' => $model ] );
 	}
 }
