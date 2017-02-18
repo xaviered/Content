@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Database\Collections\ModelCollection;
 use App\Http\Responses\ApiJsonResponse;
 use App\Database\Model;
-use Illuminate\Http\Request;
+use App\Http\Request;
 use Illuminate\Support\Facades\Facade;
 use Jenssegers\Mongodb\Query\Builder;
 
@@ -18,15 +19,19 @@ abstract class ModelController extends Controller
 	/**
 	 * @return Model|Builder|Facade Class string representation of the model. i.e. App::class
 	 */
-	abstract public function model();
+	abstract public function rootModel();
 
 	/**
 	 * Display a listing of the resource.
 	 *
+	 * @param Request $request
 	 * @return ApiJsonResponse
 	 */
 	public function index( Request $request ) {
-		$col = ( $this->model() )::query()->get();
+		$query = $request->addFilters( ( $this->rootModel() )::query() );
+
+		/** @var ModelCollection $col */
+		$col = $query->get();
 
 		if ( $request->get( 'page_size' ) ) {
 			$page_size = intval( $request->get( 'page_size' ) );
@@ -50,7 +55,7 @@ abstract class ModelController extends Controller
 		unset( $updates[ '_id' ] );
 
 		/** @var Model $model */
-		$model = ( $this->model() )::create( $updates );
+		$model = ( $this->rootModel() )::create( $updates );
 		$model->saveOrFail();
 
 		return new ApiJsonResponse( $model );

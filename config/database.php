@@ -140,6 +140,6 @@ return [
 	|
 	*/
 
-	'pagination_size' => 1000,
+	'pagination_size' => 1024,
 
 ];
