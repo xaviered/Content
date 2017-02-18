@@ -2,57 +2,68 @@
 
 namespace App\Http\Controllers;
 
-use App\Model\Model;
-use Illuminate\Http\JsonResponse;
+use App\Http\Responses\ApiJsonResponse;
+use App\Database\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Facade;
+use Jenssegers\Mongodb\Query\Builder;
 
 /**
  * Class ModelController has helper methods to handle model CRUD methods.
  *
  * @package App\Http\Controllers
  */
-class ModelController extends Controller
+abstract class ModelController extends Controller
 {
-	/** @var string $modelClass Model class to use when creating/finding */
-	protected static $modelClass;
+	/**
+	 * @return Model|Builder|Facade Class string representation of the model. i.e. App::class
+	 */
+	abstract public function model();
 
 	/**
 	 * Display a listing of the resource.
 	 *
-	 * @return JsonResponse
+	 * @return ApiJsonResponse
 	 */
-	public function index() {
-		//
-		return new JsonResponse( [] );
+	public function index( Request $request ) {
+		$col = ( $this->model() )::query()->get();
+
+		if ( $request->get( 'page_size' ) ) {
+			$page_size = intval( $request->get( 'page_size' ) );
+			if ( $page_size > 0 ) {
+				$col->setPerPage( $page_size );
+			}
+		}
+
+		return new ApiJsonResponse( $col );
 	}
 
 	/**
 	 * Store a newly created resource in storage.
 	 *
 	 * @param  \Illuminate\Http\Request $request
-	 * @return JsonResponse
+	 * @return ApiJsonResponse
 	 */
 	public function store( Request $request ) {
-		$class = static::$modelClass;
 
 		$updates = $request->all();
 		unset( $updates[ '_id' ] );
 
-		/** @var Model $app */
-		$app = $class::create( $updates );
-		$result = $app->saveOrFail();
+		/** @var Model $model */
+		$model = ( $this->model() )::create( $updates );
+		$model->saveOrFail();
 
-		return new JsonResponse( [ 'success' => $result, 'data' => $app ] );
+		return new ApiJsonResponse( $model );
 	}
 
 	/**
 	 * Display the specified resource.
 	 *
 	 * @param  Model $model
-	 * @return JsonResponse
+	 * @return ApiJsonResponse
 	 */
 	public function showModel( Model $model ) {
-		return new JsonResponse( [ 'data' => $model ] );
+		return new ApiJsonResponse( $model );
 	}
 
 	/**
@@ -60,7 +71,7 @@ class ModelController extends Controller
 	 *
 	 * @param  \Illuminate\Http\Request $request
 	 * @param  Model $model
-	 * @return JsonResponse
+	 * @return ApiJsonResponse
 	 */
 	public function updateModel( Request $request, Model $model ) {
 		$updates = $request->all();
@@ -69,18 +80,21 @@ class ModelController extends Controller
 		unset( $updates[ '_id' ] );
 		$model->update( $updates );
 
-		return new JsonResponse( $model );
+		return new ApiJsonResponse( $model );
 	}
 
 	/**
 	 * Remove the specified resource from storage.
 	 *
 	 * @param  Model $model
-	 * @return JsonResponse
+	 * @return ApiJsonResponse
 	 */
 	public function destroyModel( Model $model ) {
 		$result = $model->delete();
+		if ( !$result ) {
+			return null;
+		}
 
-		return new JsonResponse( [ 'success' => $result, 'data' => $model ] );
+		return new ApiJsonResponse( 'data' );
 	}
 }
