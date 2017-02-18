@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Database\Models\App;
+use App\Database\Models\Resource;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,12 +16,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::middleware( 'auth:api' )->get( '/user', function( Request $request ) {
+	return $request->user();
+} )
+;
 
 // App controller
-Route::resource('app', 'AppController');
+Route::resource( App::ROUTE_NAME, 'AppController' );
 
 // Resource controller
-Route::resource('resource', 'ResourceController');
+Route::resource( Resource::ROUTE_NAME, 'ResourceController' );

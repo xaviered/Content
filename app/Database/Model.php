@@ -1,6 +1,7 @@
 <?php
-namespace App\Model;
+namespace App\Database;
 
+use App\Database\Collections\ModelCollection;
 use Illuminate\Support\Facades\Auth;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -43,6 +44,7 @@ abstract class Model extends Moloquent
 		'createdOn',
 		'deletedOn',
 		'order',
+		'type',
 		'updatedBy',
 		'updatedOn',
 	];
@@ -68,20 +70,68 @@ abstract class Model extends Moloquent
 	}
 
 	/**
+	 * Gets index URL of current model
+	 *
+	 * @param string $action Route action to get
+	 * @return string
+	 */
+	public function uri( $action = 'index' ) {
+		// get url based on model
+		return url()->route( static::ROUTE_NAME . '.' . $action, request()->query->all() );
+	}
+
+	/**
+	 * Create a new Eloquent Collection instance.
+	 *
+	 * @param  array $models
+	 * @return ModelCollection
+	 */
+	public function newCollection( array $models = [] ) {
+		$col = new ModelCollection( $models );
+		$col->setRootModel( $this );
+
+		return $col;
+	}
+
+	/**
+	 * API array representation of this model
+	 * @param bool $showPaging Will show paging info and links
+	 * @return array
+	 */
+	public function toApiArray( $showPaging = true ) {
+		$modelArray = [];
+		$modelArray[ 'data' ] = $this->attributesToArray();
+		unset( $modelArray[ 'data' ][ '_id' ] );
+
+		$relationships = $this->getCollectionRelations();
+		if ( count( $relationships ) ) {
+			$modelArray[ 'relationships' ] = $relationships->toApiArray( true, false );
+		}
+
+		return $modelArray;
+	}
+
+	/**
+	 * @return ModelCollection
+	 */
+	public function getCollectionRelations() {
+		return new ModelCollection( $this->getRelations() );
+	}
+
+	/**
 	 * Perform the actual delete query on this model instance.
 	 *
 	 * @return void
 	 */
-	protected function runSoftDelete()
-	{
-		$query = $this->newQueryWithoutScopes()->where($this->getKeyName(), $this->getKey());
+	protected function runSoftDelete() {
+		$query = $this->newQueryWithoutScopes()->where( $this->getKeyName(), $this->getKey() );
 
 		$this->{$this->getDeletedAtColumn()} = $time = $this->freshTimestamp();
 
 		$updateQuery = [
 			'slug' => $this->slug .= '_deleted_' . $time,
-			$this->getDeletedAtColumn() => $this->fromDateTime($time)
+			$this->getDeletedAtColumn() => $this->fromDateTime( $time )
 		];
-		$query->update($updateQuery);
+		$query->update( $updateQuery );
 	}
 }

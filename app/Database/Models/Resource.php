@@ -1,6 +1,7 @@
 <?php
-namespace App\Model;
+namespace App\Database\Models;
 
+use App\Database\Model;
 use App\Observers\ResourceObserver;
 
 /**
@@ -10,11 +11,11 @@ use App\Observers\ResourceObserver;
  */
 class Resource extends Model
 {
+	/** Route name */
+	const ROUTE_NAME = 'resource';
+
 	/** @var App $app */
 	protected $app;
-
-	/** @var string $type */
-	public $type;
 
 	/** @var string Default to content house database */
 	protected $collection = 'contenthouse';
@@ -24,20 +25,15 @@ class Resource extends Model
 	 * Resource constructor.
 	 * @param array $attributes
 	 * @param App $app Load resource from the given app
-	 * @param string $type Type of resource
 	 */
-	public function __construct( array $attributes = [], App $app, $type ) {
+	public function __construct( array $attributes = [], App $app ) {
 		$this->app = $app;
-		$this->type = $type;
 
 		// fix connection
 		$this->setConnection( $app->getResourcesConnectionName() );
 		$this->setTable( $this->getResourceTableName() );
 		// just in case, let's change the collection for mongodb too
 		$this->collection = $this->getResourceTableName();
-
-		// fix fields
-		$this->fillable[] = 'type';
 
 		parent::__construct( $attributes );
 	}

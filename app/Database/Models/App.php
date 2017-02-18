@@ -1,10 +1,20 @@
 <?php
-namespace App\Model;
+namespace App\Database\Models;
 
+use App\Database\Model;
 use App\Observers\AppObserver;
 
+/**
+ * Class App is the model for an App being hosted at this service.
+ * Resources are attached to this app.
+ *
+ * @package App\Models
+ */
 class App extends Model
 {
+	/** Route name */
+	const ROUTE_NAME = 'app';
+
 	/**
 	 * Perform tasks once for all App models
 	 */

@@ -1,8 +1,7 @@
 <?php
 namespace App\Observers;
 
-use App\Model\App;
-use Illuminate\Support\Facades\App as LaravelApp;
+use App\Database\Models\App;
 
 /**
  * Class AppObserver handle events for App model

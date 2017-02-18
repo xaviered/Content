@@ -1,7 +1,7 @@
 <?php
 namespace App\Observers;
 
-use App\Model\App;
+use App\Database\Models\App;
 use Illuminate\Support\Facades\App as LaravelResource;
 
 /**

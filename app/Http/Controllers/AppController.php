@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Model\App;
+use App\Database\Models\App;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,8 +12,12 @@ use Illuminate\Http\Request;
  */
 class AppController extends ModelController
 {
-	/** @var string $modelClass Model class to use when creating/finding */
-	protected static $modelClass = App::class;
+	/**
+	 * @return App Class string representation of the model. i.e. App::class
+	 */
+	public function model() {
+		return App::class;
+	}
 
 	/**
 	 * Display the specified resource.
@@ -22,7 +26,7 @@ class AppController extends ModelController
 	 * @return JsonResponse
 	 */
 	public function show( App $app ) {
-		return $this->showModel($app);
+		return $this->showModel( $app );
 	}
 
 	/**

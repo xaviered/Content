@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Model\Resource;
+use App\Database\Models\Resource;
 
 /**
  * Class ResourceController
@@ -10,6 +10,11 @@ use App\Model\Resource;
  */
 class ResourceController extends ModelController
 {
-	/** @var string $modelClass Model class to use when creating/finding */
-	protected static $modelClass = Resource::class;
+	/**
+	 * @return Resource Class string representation of the model. i.e. App::class
+	 */
+	public function model() {
+		return Resource::class;
+	}
+
 }
