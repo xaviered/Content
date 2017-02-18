@@ -13,7 +13,7 @@ class ResourceController extends ModelController
 	/**
 	 * @return Resource Class string representation of the model. i.e. App::class
 	 */
-	public function model() {
+	public function rootModel() {
 		return Resource::class;
 	}
 

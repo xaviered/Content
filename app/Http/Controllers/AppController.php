@@ -15,7 +15,7 @@ class AppController extends ModelController
 	/**
 	 * @return App Class string representation of the model. i.e. App::class
 	 */
-	public function model() {
+	public function rootModel() {
 		return App::class;
 	}
 
