@@ -2,6 +2,7 @@
 namespace App\Database;
 
 use App\Database\Collections\ModelCollection;
+use App\Database\Filters\ApiSchemaFilter;
 use Illuminate\Support\Facades\Auth;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -73,11 +74,16 @@ abstract class Model extends Moloquent
 	 * Gets index URL of current model
 	 *
 	 * @param string $action Route action to get
+	 * @param array $parameters
 	 * @return string
 	 */
-	public function uri( $action = 'index' ) {
+	public function uri( $action = 'index', $parameters = null ) {
+		if ( empty( $parameters ) ) {
+			$parameters = request()->query->all();
+		}
+
 		// get url based on model
-		return url()->route( static::ROUTE_NAME . '.' . $action, request()->query->all() );
+		return url()->route( static::ROUTE_NAME . '.' . $action, $parameters );
 	}
 
 	/**
@@ -95,18 +101,25 @@ abstract class Model extends Moloquent
 
 	/**
 	 * API array representation of this model
-	 * @param bool $showPaging Will show paging info and links
 	 * @return array
 	 */
-	public function toApiArray( $showPaging = true ) {
+	public function toApiArray() {
 		$modelArray = [];
 		$modelArray[ 'data' ] = $this->attributesToArray();
-		unset( $modelArray[ 'data' ][ '_id' ] );
+
+		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
+		// filter out fields based on request params
+		request()
+			->addFilter( ApiSchemaFilter::class )
+			->filter( $modelArray[ 'data' ] )
+		;
 
 		$relationships = $this->getCollectionRelations();
 		if ( count( $relationships ) ) {
-			$modelArray[ 'relationships' ] = $relationships->toApiArray( true, false );
+			$modelArray[ 'relationships' ] = $relationships->toApiArray( true );
 		}
+
+		$modelArray[ 'links' ][ 'self' ] = $this->uri( 'show', [ 'app' => $this ] );
 
 		return $modelArray;
 	}

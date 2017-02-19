@@ -1,6 +1,7 @@
 <?php
 namespace App\Http;
 
+use App\Database\Filters\FilterBase;
 use Illuminate\Http\Request as BaseRequest;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -11,6 +12,57 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class Request extends BaseRequest
 {
+	/** @var FilterBase[] */
+	protected static $filters = [];
+
+	/**
+	 * @return array
+	 */
+	public function getFilters() {
+		return static::$filters;
+	}
+
+	/**
+	 * Given a filter class, will create new instance if not exists and add it
+	 * to the filters with the key of its class.
+	 *
+	 * Retrieve the filter as
+	 *  $filter = $request->getFilter($filterClass)
+	 *
+	 * @param string $filterClass
+	 * @return FilterBase Newly added filter
+	 */
+	public function addFilter( $filterClass ) {
+		if ( class_exists( $filterClass ) && !isset( static::$filters[ $filterClass ] ) ) {
+			$this->setFilter( $filterClass, new $filterClass( $this ) );
+		}
+
+		return $this->getFilter( $filterClass );
+	}
+
+	/**
+	 * Adds a new filter
+	 *
+	 * @param string $filterName
+	 * @param FilterBase $filter
+	 * @return $this Chainnable method
+	 */
+	public function setFilter( $filterName, FilterBase $filter ) {
+		static::$filters[ $filterName ] = $filter;
+
+		return $this;
+	}
+
+	/**
+	 * Gets a filter by its name
+	 *
+	 * @param string $filterName
+	 * @return FilterBase Null if not found
+	 */
+	public function getFilter( $filterName ) {
+		return static::$filters[ $filterName ] ?? null;
+	}
+
 	/**
 	 * Gets the filters to
 	 * @param Builder $query

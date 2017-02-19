@@ -46,7 +46,7 @@ abstract class ModelController extends Controller
 	/**
 	 * Store a newly created resource in storage.
 	 *
-	 * @param  \Illuminate\Http\Request $request
+	 * @param  Request $request
 	 * @return ApiJsonResponse
 	 */
 	public function store( Request $request ) {

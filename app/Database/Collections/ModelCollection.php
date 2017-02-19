@@ -27,14 +27,14 @@ class ModelCollection extends Collection
 	 * @param bool $showPaging Will show paging info and links
 	 * @return array
 	 */
-	public function toApiArray( $withKeys = false, $showPaging = true ) {
+	public function toApiArray( $withKeys = false ) {
 		$count = 0;
 		$modelsArray = [];
 		$paginator = $this->paginate();
 		foreach ( $paginator as $itemKey => $item ) {
 			/** @var $item Model */
 			$key = ( $withKeys ? $itemKey : $count );
-			$modelsArray[ 'data' ][ $key ] = $item->toApiArray( $showPaging );
+			$modelsArray[ 'data' ][ $key ] = $item->toApiArray();
 			$count++;
 		}
 
@@ -49,7 +49,7 @@ class ModelCollection extends Collection
 		}
 
 		$modelsArray[ 'count' ] = $paginator->count();
-		if ( $paginator->hasPages() && $showPaging ) {
+		if ( $paginator->hasPages() ) {
 			$page = $paginator->currentPage();
 			$paginator->setRootModel( $this->getRootModel() );
 
