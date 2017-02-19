@@ -22,8 +22,12 @@ class ApiJsonResponse extends JsonResponse
 		$response = [];
 		if ( $model ) {
 			// model(s)
-			if ( is_subclass_of( $model, Model::class ) || is_subclass_of( $model, Collection::class ) ) {
+			if ( is_subclass_of( $model, Model::class ) ) {
 				$response = $model->toApiArray();
+			}
+			else if ( is_subclass_of( $model, Collection::class ) ) {
+				$response = $model->toApiArray();
+
 			}
 			else {
 				$response = [ 'data' => $model ];

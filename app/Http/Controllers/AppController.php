@@ -3,7 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Database\Models\App;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use App\Http\Request;
 
 /**
  * Class AppController

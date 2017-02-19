@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Database\Collections\ModelCollection;
+use App\Database\Filters\ApiSearchFilter;
 use App\Http\Responses\ApiJsonResponse;
 use App\Database\Model;
 use App\Http\Request;
@@ -28,7 +29,14 @@ abstract class ModelController extends Controller
 	 * @return ApiJsonResponse
 	 */
 	public function index( Request $request ) {
-		$query = $request->addFilters( ( $this->rootModel() )::query() );
+		$query = ( $this->rootModel() )::query();
+
+		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
+		// filter out fields based on request params
+		request()
+			->addFilter( ApiSearchFilter::class )
+			->filter( $query )
+		;
 
 		/** @var ModelCollection $col */
 		$col = $query->get();
@@ -46,7 +54,7 @@ abstract class ModelController extends Controller
 	/**
 	 * Store a newly created resource in storage.
 	 *
-	 * @param  \Illuminate\Http\Request $request
+	 * @param  Request $request
 	 * @return ApiJsonResponse
 	 */
 	public function store( Request $request ) {
