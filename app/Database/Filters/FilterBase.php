@@ -13,7 +13,7 @@ abstract class FilterBase
 	protected $request;
 
 	/**
-	 * ApiSchemaFilter constructor.
+	 * FilterBase constructor.
 	 * @param Request $request
 	 */
 	public function __construct( Request $request ) {

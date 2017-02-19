@@ -2,10 +2,10 @@
 namespace App\Database\Filters;
 
 /**
- * Class ApiSchemaFilter
+ * Class ApiModelFilter
  * @package App\Database\Filters
  */
-class ApiSchemaFilter extends FilterBase
+class ApiModelFilter extends FilterBase
 {
 	/**
 	 * @param mixed $data

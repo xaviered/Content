@@ -2,7 +2,7 @@
 namespace App\Database;
 
 use App\Database\Collections\ModelCollection;
-use App\Database\Filters\ApiSchemaFilter;
+use App\Database\Filters\ApiModelFilter;
 use Illuminate\Support\Facades\Auth;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -110,7 +110,7 @@ abstract class Model extends Moloquent
 		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
 		// filter out fields based on request params
 		request()
-			->addFilter( ApiSchemaFilter::class )
+			->addFilter( ApiModelFilter::class )
 			->filter( $modelArray[ 'data' ] )
 		;
 
