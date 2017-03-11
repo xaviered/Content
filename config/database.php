@@ -66,7 +66,7 @@ return [
 			'sslmode' => 'prefer',
 		],
 
-		'mongodb' => array(
+		'mongodb' => [
 			'driver' => 'mongodb',
 			'host' => env( 'DB_HOST', 'localhost' ),
 			'port' => env( 'DB_PORT', 27017 ),
@@ -74,10 +74,10 @@ return [
 			'username' => env( 'DB_USERNAME', 'l5' ),
 			'password' => env( 'DB_PASSWORD', '12345' ),
 
-			'options' => array(
+			'options' => [
 				'db' => 'admin' // sets the authentication database required by mongo 3
-			)
-		),
+			]
+		],
 
 	],
 
