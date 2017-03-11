@@ -28,25 +28,11 @@ class ResourceController extends ModelController
 	 * Display a listing of the resource by $type under an given $app.
 	 *
 	 * @param Request $request
-	 * @param App $app
 	 * @param string $type
+	 * @param App $app
 	 * @return ApiJsonResponse
 	 */
-	public function list( Request $request, App $app) {
-		// @todo: list of all types of resources
-		// i.e. [ 'links' => ['{type}' => 'http://contenthouse/api/resource/{app}/{type}], ... ]
-		return new ApiJsonResponse( [] );
-	}
-
-	/**
-	 * Display a listing of the resource by $type under an given $app.
-	 *
-	 * @param Request $request
-	 * @param App $app
-	 * @param string $type
-	 * @return ApiJsonResponse
-	 */
-	public function index( Request $request, App $app, $type ) {
+	public function index( Request $request, $type, App $app ) {
 		return new ApiJsonResponse(
 			$this->getModelCollection( $request, ( $this->rootModel() )::queryFromType( $type, $app ) )
 		);
@@ -55,13 +41,13 @@ class ResourceController extends ModelController
 	/**
 	 * Display the specified resource.
 	 *
-	 * @param App $app
 	 * @param string $type
+	 * @param App $app
 	 * @param string $resource Resource slug
 	 * @return JsonResponse
 	 * @internal param Resource $resourceInstance
 	 */
-	public function show( App $app, $type, $resource ) {
+	public function show( $type, App $app, $resource ) {
 		$resource = ( $this->rootModel() )::queryFromType( $type, $app )
 			->where( 'slug', $resource )
 			->firstOrFail()
@@ -73,11 +59,13 @@ class ResourceController extends ModelController
 	/**
 	 * Update the specified resource in storage.
 	 *
-	 * @param  Request $request
-	 * @param  App $app
+	 * @param Request $request
+	 * @param string $type
+	 * @param App $app
+	 * @param $resource
 	 * @return JsonResponse
 	 */
-	public function update( Request $request, App $app, $type, $resource ) {
+	public function update( Request $request, $type, App $app, $resource ) {
 		$resource = ( $this->rootModel() )::queryFromType( $type, $app )
 			->where( 'slug', $resource )
 			->firstOrFail()
@@ -89,10 +77,11 @@ class ResourceController extends ModelController
 	/**
 	 * Remove the specified resource from storage.
 	 *
+	 * @param string $type
 	 * @param  App $app
 	 * @return JsonResponse
 	 */
-	public function destroy( App $app, $type, $resource ) {
+	public function destroy( $type, App $app, $resource ) {
 		$resource = ( $this->rootModel() )::queryFromType( $type, $app )
 			->where( 'slug', $resource )
 			->firstOrFail()

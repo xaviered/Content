@@ -24,40 +24,34 @@ Route::middleware( 'auth:api' )->get( '/user', function( Request $request ) {
 //Route::middleware('auth:api')->resource( App::ROUTE_NAME, 'AppController' );
 Route::resource( App::ROUTE_NAME, 'AppController' );
 
-// Resource controller
-// list
-Route::get( 'resource/{app}', 'ResourceController@list' )
-	->where( 'app', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
-	->name( 'resource.list' )
-;
 // index
-Route::get( 'resource/{app}/{type}', 'ResourceController@index' )
+Route::get( '{type}/{app}', 'ResourceController@index' )
 	->where( 'app', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
 	->where( 'type', '[A-Za-z]+' )
 	->name( 'resource.index' )
 ;
 // show
-Route::get( 'resource/{app}/{type}/{resource}', 'ResourceController@show' )
+Route::get( '{type}/{app}/{resource}', 'ResourceController@show' )
 	->where( 'app', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
 	->where( 'type', '[A-Za-z]+' )
 	->where( 'resource', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
 	->name( 'resource.show' )
 ;
 // store
-Route::post( 'resource/{app}/{type}', 'ResourceController@store' )
+Route::post( '{type}/{app}', 'ResourceController@store' )
 	->where( 'app', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
 	->where( 'type', '[A-Za-z]+' )
 	->name( 'resource.store' )
 ;
 // update
-Route::match( [ 'put', 'patch' ], 'resource/{app}/{type}/{resource}', 'ResourceController@update' )
+Route::match( [ 'put', 'patch' ], '{type}/{app}/{resource}', 'ResourceController@update' )
 	->where( 'app', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
 	->where( 'type', '[A-Za-z]+' )
 	->where( 'resource', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
 	->name( 'resource.update' )
 ;
 // delete
-Route::delete( 'resource/{app}/{type}/{resource}', 'ResourceController@destroy' )
+Route::delete( '{type}/{app}/{resource}', 'ResourceController@destroy' )
 	->where( 'app', '[A-Za-z\-_][A-Za-z0-9\-_]+' )
 	->where( 'type', '[A-Za-z]+' )
 	->where( 'resource', '[A-Za-z\-_][A-Za-z0-9\-_]+' )

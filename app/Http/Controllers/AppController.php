@@ -39,6 +39,8 @@ class AppController extends ModelController
 	 * @return JsonResponse
 	 */
 	public function show( App $app ) {
+		// @todo: add a 'resources' relationship with all types of resources
+
 		return $this->showModel( $app );
 	}
 
