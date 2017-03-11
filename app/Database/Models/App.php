@@ -23,6 +23,26 @@ class App extends Model
 	}
 
 	/**
+	 * Gets URL of current model
+	 *
+	 * @param string $action Route action to get
+	 * @param array $parameters
+	 * @return string
+	 */
+	public function uri( $action = 'index', $parameters = null ) {
+		switch ( $action ) {
+			case 'show':
+				$parameters = array_merge(
+					is_array( $parameters ) ? $parameters : request()->query->all(),
+					[ 'app' => $this ]
+				);
+				break;
+		}
+
+		return parent::uri( $action, $parameters );
+	}
+
+	/**
 	 * Custom connection for all resources under this app
 	 *
 	 * @return string

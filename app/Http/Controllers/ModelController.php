@@ -23,35 +23,6 @@ abstract class ModelController extends Controller
 	abstract public function rootModel();
 
 	/**
-	 * Display a listing of the resource.
-	 *
-	 * @param Request $request
-	 * @return ApiJsonResponse
-	 */
-	public function index( Request $request ) {
-		$query = ( $this->rootModel() )::query();
-
-		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
-		// filter out fields based on request params
-		request()
-			->addFilter( ApiSearchFilter::class )
-			->filter( $query )
-		;
-
-		/** @var ModelCollection $col */
-		$col = $query->get();
-
-		if ( $request->get( 'page_size' ) ) {
-			$page_size = intval( $request->get( 'page_size' ) );
-			if ( $page_size > 0 ) {
-				$col->setPerPage( $page_size );
-			}
-		}
-
-		return new ApiJsonResponse( $col );
-	}
-
-	/**
 	 * Store a newly created resource in storage.
 	 *
 	 * @param  Request $request
@@ -108,6 +79,34 @@ abstract class ModelController extends Controller
 			return null;
 		}
 
-		return new ApiJsonResponse( 'data' );
+		return new ApiJsonResponse( [ 'success' => $result ] );
+	}
+
+	/**
+	 * Gets ModelCollection from $query based on $request params
+	 *
+	 * @param Request $request
+	 * @param \Illuminate\Database\Eloquent\Builder $query
+	 * @return ModelCollection
+	 */
+	protected function getModelCollection( Request $request, $query ) {
+		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
+		// filter out fields based on request params
+		request()
+			->addFilter( ApiSearchFilter::class )
+			->filter( $query )
+		;
+
+		/** @var ModelCollection $col */
+		$col = $query->get();
+
+		if ( $request->get( 'page_size' ) ) {
+			$page_size = intval( $request->get( 'page_size' ) );
+			if ( $page_size > 0 ) {
+				$col->setPerPage( $page_size );
+			}
+		}
+
+		return $col;
 	}
 }

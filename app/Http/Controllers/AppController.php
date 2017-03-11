@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Database\Models\App;
+use App\Http\Responses\ApiJsonResponse;
 use Illuminate\Http\JsonResponse;
 use App\Http\Request;
 
@@ -17,6 +18,18 @@ class AppController extends ModelController
 	 */
 	public function rootModel() {
 		return App::class;
+	}
+
+	/**
+	 * Display a listing of the resource.
+	 *
+	 * @param Request $request
+	 * @return ApiJsonResponse
+	 */
+	public function index( Request $request ) {
+		return new ApiJsonResponse(
+			$this->getModelCollection( $request, ( $this->rootModel() )::query() )
+		);
 	}
 
 	/**

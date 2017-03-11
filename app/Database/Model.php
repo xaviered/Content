@@ -37,18 +37,8 @@ abstract class Model extends Moloquent
 	/** @var string All primary keys will be slugs */
 	protected $primaryKey = 'slug';
 
-	/** @var array Allowed mass-fillable fields */
-	protected $fillable = [
-		'slug',
-		'title',
-		'createdBy',
-		'createdOn',
-		'deletedOn',
-		'order',
-		'type',
-		'updatedBy',
-		'updatedOn',
-	];
+	/** @var array Don't guard any field and allow anything */
+	protected $guarded = [];
 
 	/**
 	 * Creates new model with default values if they are not present on $attributes
@@ -57,17 +47,27 @@ abstract class Model extends Moloquent
 	 * @return static
 	 */
 	public static function create( array $attributes = [] ) {
+		return new static( static::prepareNew( $attributes ) );
+	}
+
+	/**
+	 * @param $attributes
+	 * @return array
+	 */
+	protected static function prepareNew( $attributes ) {
 		$time = time();
 		$userId = Auth::user() ? Auth::user()->id : 1;
-		$attributes = array_merge( [
-			'createdBy' => $userId,
-			'createdOn' => $time,
-			'updatedBy' => $userId,
-			'updatedOn' => $time,
-			'order' => 1,
-		], $attributes );
 
-		return new static( $attributes );
+		return array_merge(
+			$attributes,
+			[
+				'createdBy' => $userId,
+				'createdOn' => $time,
+				'updatedBy' => $userId,
+				'updatedOn' => $time,
+				'order' => 1
+			]
+		);
 	}
 
 	/**
@@ -80,6 +80,13 @@ abstract class Model extends Moloquent
 	public function uri( $action = 'index', $parameters = null ) {
 		if ( empty( $parameters ) ) {
 			$parameters = request()->query->all();
+		}
+
+		switch ( $action ) {
+			case 'show':
+				unset( $parameters[ 'page' ] );
+				unset( $parameters[ 'page_size' ] );
+				break;
 		}
 
 		// get url based on model
@@ -119,7 +126,7 @@ abstract class Model extends Moloquent
 			$modelArray[ 'relationships' ] = $relationships->toApiArray( true );
 		}
 
-		$modelArray[ 'links' ][ 'self' ] = $this->uri( 'show', [ 'app' => $this ] );
+		$modelArray[ 'links' ][ 'self' ] = $this->uri( 'show' );
 
 		return $modelArray;
 	}
