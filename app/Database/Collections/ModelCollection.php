@@ -53,8 +53,7 @@ class ModelCollection extends Collection
 			$page = $paginator->currentPage();
 			$paginator->setRootModel( $this->getRootModel() );
 
-			$hasQuery = count( $request->query );
-			if ( $hasQuery ) {
+			if ( $request->query->count() ) {
 				$parameters = $request->query->all();
 				$paginator->appends( $parameters );
 			}
