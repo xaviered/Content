@@ -32,6 +32,20 @@ class ResourceController extends ModelController
 	 * @param string $type
 	 * @return ApiJsonResponse
 	 */
+	public function list( Request $request, App $app) {
+		// @todo: list of all types of resources
+		// i.e. [ 'links' => ['{type}' => 'http://contenthouse/api/resource/{app}/{type}], ... ]
+		return new ApiJsonResponse( [] );
+	}
+
+	/**
+	 * Display a listing of the resource by $type under an given $app.
+	 *
+	 * @param Request $request
+	 * @param App $app
+	 * @param string $type
+	 * @return ApiJsonResponse
+	 */
 	public function index( Request $request, App $app, $type ) {
 		return new ApiJsonResponse(
 			$this->getModelCollection( $request, ( $this->rootModel() )::queryFromType( $type, $app ) )
