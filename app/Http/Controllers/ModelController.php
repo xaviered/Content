@@ -79,7 +79,7 @@ abstract class ModelController extends Controller
 			return null;
 		}
 
-		return new ApiJsonResponse( 'data' );
+		return new ApiJsonResponse( [ 'success' => $result ] );
 	}
 
 	/**

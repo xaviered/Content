@@ -28,12 +28,12 @@ class Resource extends Model
 	 * @param App|string $app Load resource from the given app (or slug of app)
 	 */
 	public function __construct( array $attributes = [], $app = null ) {
-		// @todo: do not use segment, use `app` slug or something
 		if ( is_string( $app ) && !empty( $app ) ) {
 			$appSlug = $app;
 			$app = null;
 		}
 		else {
+			// @todo: do not use segment, use `app` slug or something
 			$appSlug = $attributes[ 'app' ] ?? request()->segment( 3 );
 		}
 
@@ -96,7 +96,6 @@ class Resource extends Model
 	 * @return string
 	 */
 	public function getTable() {
-		// @todo: $this->slug is not set while doing a search!
 		$this->getConnection();
 		$this->collection = !empty( $this->type ) ? 't_' . $this->type : 'contenthouse';
 
@@ -127,6 +126,7 @@ class Resource extends Model
 	public static function queryFromType( $type, $app = null ) {
 		$r = ( new static( [ 'type' => $type ], $app ) );
 
+		// @todo: This is returning delete items by default; disable this
 		return $r->newQuery();
 	}
 
