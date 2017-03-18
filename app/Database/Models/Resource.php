@@ -4,6 +4,7 @@ namespace App\Database\Models;
 use App\Database\Model;
 use App\Observers\ResourceObserver;
 use Illuminate\Support\Facades\App as LaravelApp;
+use ixavier\Libraries\Core\RestfulRecord;
 
 /**
  * Class Resource holds resources for a particular App
@@ -18,8 +19,10 @@ class Resource extends Model
 	/** @var App $app */
 	protected $app;
 
-	/** @var string Default to content house database */
+	/** @var string Default to content house collection in MongoDB */
 	protected $collection = 'contenthouse';
+
+	/** @var string Default to content house database in regular DBs */
 	protected $table = 'contenthouse';
 
 	/**
@@ -27,23 +30,25 @@ class Resource extends Model
 	 * @param array $attributes
 	 * @param App|string $app Load resource from the given app (or slug of app)
 	 */
-	public function __construct( array $attributes = [], $app = null ) {
-		if ( is_string( $app ) && !empty( $app ) ) {
-			$appSlug = $app;
-			$app = null;
-		}
-		else {
-			// @todo: do not use segment, use `app` slug or something
-			$appSlug = $attributes[ 'app' ] ?? request()->segment( 3 );
-		}
+	public function __construct( $attributes = [] ) {
+		// precedence for values: slug, attributes, else
+		$defaults = [
+			'app' => $attributes[ '__app' ] ?? null,
+			'type' => $attributes[ 'type' ] ?? 'page'
+		];
+		$matches = RestfulRecord::parseResourceSlug( $attributes[ 'slug' ] ?? '', $defaults );
+		list( $app, $attributes[ 'type' ], $attributes[ 'slug' ] ) = $matches;
 
-		if ( !$app ) {
-			if ( !empty( $appSlug ) ) {
-				$app = App::query()->where( [ 'slug' => $appSlug ] )->firstOrFail();
-			}
+		// do not allow this, as this will be dynamic
+		unset( $attributes[ '__app' ] );
+
+		// load app
+		if ( is_string( $app ) && !empty( $app ) ) {
+			$app = App::query()->where( [ 'slug' => $app ] )->firstOrFail();
 		}
 
 		$this->app = $app;
+
 		parent::__construct( $attributes );
 	}
 
@@ -117,17 +122,46 @@ class Resource extends Model
 	}
 
 	/**
-	 * Begin querying the model.
+	 * Create a new instance of the given model.
+	 * Overwrites parent function to add app and type.
 	 *
-	 * @param string $type
-	 * @param App|string $app App or slug of app
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * @param  array $attributes
+	 * @param  bool $exists
+	 * @return static
 	 */
-	public static function queryFromType( $type, $app = null ) {
-		$r = ( new static( [ 'type' => $type ], $app ) );
+	public function newInstance( $attributes = [], $exists = false ) {
+		$attributes = array_merge(
+			[
+				'type' => $this->type ?? null,
+				'__app' => $this->app ?? null
+			],
+			$attributes
+		);
+		
+		// This method just provides a convenient way for us to generate fresh model
+		// instances of this current model. It is particularly useful during the
+		// hydration of new objects via the Eloquent query builder instances.
+		$model = new static( (array)$attributes );
 
-		// @todo: This is returning delete items by default; disable this
-		return $r->newQuery();
+		$model->exists = $exists;
+
+		$model->setConnection(
+			$this->getConnectionName()
+		);
+
+		return $model;
+	}
+
+	/**
+	 * Begin querying the model.
+	 * Overwrites parent function to add app and type.
+	 *
+	 * @param array $attributes Pass in type and app for resource
+	 * @return \Illuminate\Database\Eloquent\Builder|self;
+	 */
+	public static function query( ...$attributes ) {
+		// @todo: This is returning deleted items by default; disable this
+		return ( new static( ...$attributes ) )->newQuery();
 	}
 
 	/**
@@ -156,5 +190,4 @@ class Resource extends Model
 
 		return parent::uri( $action, $parameters );
 	}
-
 }

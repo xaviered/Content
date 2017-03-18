@@ -14,13 +14,6 @@ use App\Http\Request;
 class AppController extends ModelController
 {
 	/**
-	 * @return App Class string representation of the model. i.e. App::class
-	 */
-	public function rootModel() {
-		return App::class;
-	}
-
-	/**
 	 * Display a listing of the resource.
 	 *
 	 * @param Request $request
@@ -28,7 +21,7 @@ class AppController extends ModelController
 	 */
 	public function index( Request $request ) {
 		return new ApiJsonResponse(
-			$this->getModelCollection( $request, ( $this->rootModel() )::query() )
+			$this->getModelCollection( $request, App::query() )
 		);
 	}
 
@@ -39,9 +32,24 @@ class AppController extends ModelController
 	 * @return JsonResponse
 	 */
 	public function show( App $app ) {
-		// @todo: add a 'resources' relationship with all types of resources
-
 		return $this->showModel( $app );
+	}
+
+	/**
+	 * Store a newly created resource in storage.
+	 *
+	 * @param  Request $request
+	 * @return ApiJsonResponse
+	 */
+	public function store( Request $request ) {
+
+		$updates = $request->all();
+		unset( $updates[ '_id' ] );
+
+		$model = App::create( $updates );
+		$model->saveOrFail();
+
+		return new ApiJsonResponse( $model );
 	}
 
 	/**

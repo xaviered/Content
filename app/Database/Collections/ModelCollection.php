@@ -24,10 +24,10 @@ class ModelCollection extends Collection
 	 * Same as toArray() but ready to be sent to an API
 	 *
 	 * @param bool $withKeys
-	 * @param bool $showPaging Will show paging info and links
+	 * @param bool $hideLinks Hide links
 	 * @return array
 	 */
-	public function toApiArray( $withKeys = false ) {
+	public function toApiArray( $withKeys = false, $hideLinks = false ) {
 		$count = 0;
 		$modelsArray = [];
 		$paginator = $this->paginate();
@@ -62,7 +62,7 @@ class ModelCollection extends Collection
 			$modelsArray[ 'page' ] = $page;
 			$modelsArray[ 'total_pages' ] = $paginator->lastPage();
 
-			if ( $paginator->previousPageUrl() ) {
+			if ( !$hideLinks && $paginator->previousPageUrl() ) {
 				if ( $page - 1 > 1 ) {
 					$modelsArray[ 'links' ][ 'prev' ] = $paginator->previousPageUrl();
 				}
@@ -75,7 +75,9 @@ class ModelCollection extends Collection
 			}
 		}
 
-		$modelsArray[ 'links' ][ 'self' ] = $request->getUri();
+		if ( !$hideLinks ) {
+			$modelsArray[ 'links' ][ 'self' ] = $this->getRootModel()->uri( 'show' );
+		}
 
 		return $modelsArray;
 	}

@@ -124,6 +124,18 @@ return [
 
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
 
+	/*
+	|--------------------------------------------------------------------------
+	| Scheme name
+	|--------------------------------------------------------------------------
+	|
+	| When parsing custom ixavier URLs (XUrl), use this service name to
+	| determine local service/site.
+	|
+	*/
+
+	'schemeName' => 'content',
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

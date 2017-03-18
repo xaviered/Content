@@ -18,29 +18,6 @@ use Jenssegers\Mongodb\Query\Builder;
 abstract class ModelController extends Controller
 {
 	/**
-	 * @return Model|Builder|Facade Class string representation of the model. i.e. App::class
-	 */
-	abstract public function rootModel();
-
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @param  Request $request
-	 * @return ApiJsonResponse
-	 */
-	public function store( Request $request ) {
-
-		$updates = $request->all();
-		unset( $updates[ '_id' ] );
-
-		/** @var Model $model */
-		$model = ( $this->rootModel() )::create( $updates );
-		$model->saveOrFail();
-
-		return new ApiJsonResponse( $model );
-	}
-
-	/**
 	 * Display the specified resource.
 	 *
 	 * @param  Model $model
