@@ -12,7 +12,7 @@ return [
     | any other location as required by the application or its packages.
     */
 
-    'name' => 'ixavier/contenthouse',
+    'name' => 'ixavier/content',
 
     /*
     |--------------------------------------------------------------------------
@@ -134,7 +134,7 @@ return [
 	|
 	*/
 
-	'schemeName' => 'content',
+	'serviceName' => 'content',
 
     /*
     |--------------------------------------------------------------------------

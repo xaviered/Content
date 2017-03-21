@@ -1,22 +1,28 @@
 <?php
-namespace App\Database;
+namespace App\Database\Models;
 
 use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiModelFilter;
+use App\Database\Observers\ModelObserver;
+use App\Support\Traits\SoftMacroable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use ixavier\Libraries\Http\ContentXUrl;
+use ixavier\Libraries\Core\RestfulRecord;
 use ixavier\Libraries\Http\XUrl;
-use ixavier\Libraries\RestfulRecords\Resource;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Class Model represents a MongoDB model
- * @package App\Model
+ *
+ * @package App\Database\Models
  */
 abstract class Model extends Moloquent
 {
 	use SoftDeletes;
+	use SoftMacroable;
+	use HasRelations;
 
 	/** Key for created date */
 	const CREATED_AT = 'createdOn';
@@ -55,6 +61,16 @@ abstract class Model extends Moloquent
 	/** @var \Closure[] An array of dynamic relationship functions */
 	protected $dynamicRelations = [];
 
+	/** @var array|XUrl|string */
+	private $__fixedAttributes;
+
+	/**
+	 * Even handler
+	 */
+	public static function boot() {
+		self::observe( ModelObserver::class );
+	}
+
 	/**
 	 * Creates new model with default values if they are not present on $attributes
 	 *
@@ -71,8 +87,7 @@ abstract class Model extends Moloquent
 				'createdBy' => $userId,
 				'createdOn' => $time,
 				'updatedBy' => $userId,
-				'updatedOn' => $time,
-				'order' => 1
+				'updatedOn' => $time
 			]
 		);
 
@@ -89,8 +104,29 @@ abstract class Model extends Moloquent
 	 * @throws \Illuminate\Database\Eloquent\MassAssignmentException
 	 */
 	public function fill( array $attributes ) {
+		$this->__fixedAttributes = RestfulRecord::fixAttributes( $attributes );
 
-		return parent::fill( $attributes );
+		return parent::fill( RestfulRecord::cleanAttributes( $this->__fixedAttributes ) );
+	}
+
+	/**
+	 * Gets fixed attributes, without being cleaned, so we can create more instances like these
+	 *
+	 * @return array|XUrl|string
+	 */
+	protected function getFixedAttributes() {
+		return $this->__fixedAttributes;
+	}
+
+	// @todo: Remove from DB any attributes that are set to `null`
+	/**
+	 * Get the cleaned attributes that have been changed since last sync.
+	 * Mainly used for cleaning attributes before updating
+	 *
+	 * @return array
+	 */
+	public function getDirty() {
+		return parent::getDirty();
 	}
 
 	/**
@@ -100,7 +136,7 @@ abstract class Model extends Moloquent
 	 * @param array $parameters
 	 * @return string
 	 */
-	public function uri( $action = 'index', $parameters = null ) {
+	public function uri( $action = 'index', $parameters = [] ) {
 		if ( empty( $parameters ) ) {
 			$parameters = request()->query->all();
 		}
@@ -119,7 +155,7 @@ abstract class Model extends Moloquent
 	/**
 	 * Create a new Eloquent Collection instance.
 	 *
-	 * @param  array $models
+	 * @param  ModelCollection|Collection|array $models
 	 * @return ModelCollection
 	 */
 	public function newCollection( array $models = [] ) {
@@ -131,13 +167,56 @@ abstract class Model extends Moloquent
 
 	/**
 	 * API array representation of this model
+	 *
+	 * @param bool $withKeys Show keys for Collections
+	 * @param bool $hideLink Hide self link in Models
+	 * @param bool $hideSelfLinkQuery Don't add query info to self link for Models
 	 * @return array
 	 */
-	public function toApiArray() {
-		// try loading relationships at the same time as:
-		// i.e. $this->load('author', 'publisher');
-		$modelArray = [];
-		$modelArray[ 'data' ] = $this->attributesToArray();
+	public function toApiArray( $withKeys = true, $hideLink = false, $hideSelfLinkQuery = false ) {
+		// load relations
+		$relations = null;
+		if ( !request( 'ignoreRelations' ) ) {
+			if ( request( 'separateRelations' ) ) {
+				$relations = $this->getCollectionRelations()->toApiArray( true, true );
+				unset( $relations[ 'count' ] );
+			}
+			else {
+				$this->mountRelations();
+			}
+		}
+
+		$modelArray = [
+			'data' => $this->attributesToArray(),
+		];
+
+		array_walk_recursive( $modelArray, function( &$item, $key ) {
+			if ( is_object( $item ) ) {
+				if ( $item instanceof Collection ) {
+					$item = $item->toApiArray( true, true, true )[ 'data' ] ?? [];
+				}
+				else if ( $item instanceof self ) {
+					$item = $item->toApiArray( true, true, true );
+				}
+			}
+		} );
+
+		if ( request( 'separateRelations' ) ) {
+			$modelArray[ 'relations' ] = $relations[ 'data' ] ?? new \stdClass;
+		}
+
+		// don't show links
+//		if ( !$hideLink ) {
+		// don't include query in URI
+		$oldQuery = request()->query;
+		if ( $hideSelfLinkQuery ) {
+			request()->query = new ParameterBag();
+		}
+		$modelArray[ 'links' ][ 'self' ] = $this->uri( 'show' );
+		if ( $hideSelfLinkQuery ) {
+			request()->query = $oldQuery;
+		}
+//		}
 
 		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
 		// filter out fields based on request params
@@ -146,93 +225,7 @@ abstract class Model extends Moloquent
 			->filter( $modelArray[ 'data' ] )
 		;
 
-		$modelArray[ 'relationships' ] = $this->getCollectionRelations()->toApiArray( true, true );
-		unset( $modelArray[ 'relationships' ][ 'count' ] );
-		$modelArray[ 'links' ][ 'self' ] = $this->uri( 'show' );
-
 		return $modelArray;
-	}
-
-	/**
-	 * @return ModelCollection
-	 */
-	public function getCollectionRelations() {
-		return $this->newCollection( $this->getRelations() );
-	}
-
-	/**
-	 * Get all the loaded relations for the instance.
-	 *
-	 * @return array
-	 */
-	public function getRelations() {
-		// @todo: fix relationships
-//		$rel = $this->prepareRelationships();
-//		$this->load( $rel );
-
-		$r = parent::getRelations();
-
-		return $r;
-	}
-
-	/**
-	 * Gets the key where relationships are stored for the given $key
-	 *
-	 * @param string $key
-	 * @return string
-	 */
-	protected static function getRelationshipKey( $key ) {
-		return '__r_' . $key;
-	}
-
-	// @todo: fix relationships
-	/**
-	 * Prepares relationships from string attributes that may refer to a resource
-	 *
-	 */
-	public function prepareRelationships() {
-		$r = [];
-		foreach ( $this->attributes as $attrKey => $attrValue ) {
-			if ( is_string( $attrValue ) ) {
-				$xUrl = XUrl::create( $attrValue );
-				$relKey = static::getRelationshipKey( $attrKey );
-
-				if ( $xUrl->isValid() && $xUrl->name == 'content' ) {
-					/** @var $xUrl ContentXUrl */
-					// one-to-one relationship with resource
-					if ( !empty( $xUrl->resource ) ) {
-//						dd([$attrKey, $xUrl, RestfulRecord::parseResourceSlug($xUrl->requestedResource)]);
-						$r[] = $attrKey;
-						$model = $this;
-						\Jenssegers\Mongodb\Eloquent\Builder::macro( $attrKey, function() use ( $model, $relKey ) {
-//							dd([get_class($this), func_get_args()]);
-							return $model->hasOne( Resource::class, 'slug', $relKey );
-						} );
-//						dd( $this->{$attrKey}() );
-					}
-					// many-to-many relationships stored on collection
-					else if ( $xUrl->type == 'collection' ) {
-
-					}
-					// one-to-many relationships with resources of the given type under an app
-					else if ( !empty( $xUrl->type ) ) {
-
-					}
-					// one-to-one relationship with app
-					else if ( !empty( $xUrl->app ) ) {
-
-					}
-					// no relationship
-					else {
-
-					}
-				}
-			}
-		}
-
-//		dd( [ $r, $this ] );
-
-		return $r;
 	}
 
 	/**

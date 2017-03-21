@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiSearchFilter;
 use App\Http\Responses\ApiJsonResponse;
-use App\Database\Model;
+use App\Database\Models\Model;
 use App\Http\Request;
-use Illuminate\Support\Facades\Facade;
-use Jenssegers\Mongodb\Query\Builder;
 
 /**
  * Class ModelController has helper methods to handle model CRUD methods.
@@ -20,7 +18,7 @@ abstract class ModelController extends Controller
 	/**
 	 * Display the specified resource.
 	 *
-	 * @param  Model $model
+	 * @param  \App\Database\Models\Model $model
 	 * @return ApiJsonResponse
 	 */
 	public function showModel( Model $model ) {
@@ -30,7 +28,7 @@ abstract class ModelController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 *
-	 * @param  \Illuminate\Http\Request $request
+	 * @param  Request $request
 	 * @param  Model $model
 	 * @return ApiJsonResponse
 	 */

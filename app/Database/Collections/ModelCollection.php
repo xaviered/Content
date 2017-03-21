@@ -1,8 +1,7 @@
 <?php
 namespace App\Database\Collections;
 
-use App\Database\Model;
-use App\Database\Paginator;
+use App\Database\Models\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -23,18 +22,26 @@ class ModelCollection extends Collection
 	/**
 	 * Same as toArray() but ready to be sent to an API
 	 *
-	 * @param bool $withKeys
-	 * @param bool $hideLinks Hide links
+	 * @param bool $withKeys Show keys for Collections
+	 * @param bool $hideLink Hide self link in Models
+	 * @param bool $hideSelfLinkQuery Don't add query info to self link for Models
 	 * @return array
 	 */
-	public function toApiArray( $withKeys = false, $hideLinks = false ) {
+	public function toApiArray( $withKeys = false, $hideLink = false, $hideSelfLinkQuery = false ) {
 		$count = 0;
 		$modelsArray = [];
 		$paginator = $this->paginate();
 		foreach ( $paginator as $itemKey => $item ) {
-			/** @var $item Model */
+			/** @var $item Model|Collection */
 			$key = ( $withKeys ? $itemKey : $count );
-			$modelsArray[ 'data' ][ $key ] = $item->toApiArray();
+			if ( $item instanceof Collection ) {
+				$item = $item->toApiArray( true, true, true  )[ 'data' ] ?? [];
+			}
+			else if ( $item instanceof Model ) {
+				$item = $item->toApiArray( true, true, true  );
+			}
+
+			$modelsArray[ 'data' ][ $key ] = $item;
 			$count++;
 		}
 
@@ -62,7 +69,7 @@ class ModelCollection extends Collection
 			$modelsArray[ 'page' ] = $page;
 			$modelsArray[ 'total_pages' ] = $paginator->lastPage();
 
-			if ( !$hideLinks && $paginator->previousPageUrl() ) {
+			if ( !$hideLink && $paginator->previousPageUrl() ) {
 				if ( $page - 1 > 1 ) {
 					$modelsArray[ 'links' ][ 'prev' ] = $paginator->previousPageUrl();
 				}
@@ -75,7 +82,7 @@ class ModelCollection extends Collection
 			}
 		}
 
-		if ( !$hideLinks ) {
+		if ( !$hideLink ) {
 			$modelsArray[ 'links' ][ 'self' ] = $this->getRootModel()->uri( 'show' );
 		}
 

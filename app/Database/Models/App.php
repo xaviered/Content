@@ -1,8 +1,7 @@
 <?php
 namespace App\Database\Models;
 
-use App\Database\Model;
-use App\Observers\AppObserver;
+use App\Database\Observers\AppObserver;
 
 /**
  * Class App is the model for an App being hosted at this service.

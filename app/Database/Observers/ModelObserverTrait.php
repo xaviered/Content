@@ -1,12 +1,11 @@
 <?php
-namespace App\Observers;
+namespace App\Database\Observers;
 
 /**
  * Class ModelObserverTrait has common events for all models
  *
- * @package App\Observers
+ * @package App\Database\Observers
  */
 trait ModelObserverTrait
 {
-
 }
