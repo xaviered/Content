@@ -5,6 +5,7 @@ use App\Database\Models\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use ixavier\Libraries\Core\RestfulRecord;
 
 /**
  * Class ModelCollection serves as a custom collection for models
@@ -22,26 +23,26 @@ class ModelCollection extends Collection
 	/**
 	 * Same as toArray() but ready to be sent to an API
 	 *
+	 * @param int $relationsDepth Current depth of relations loaded. Default = 1
+	 * @param bool $hideLinks Hide links section
 	 * @param bool $withKeys Show keys for Collections
-	 * @param bool $hideLink Hide self link in Models
-	 * @param bool $hideSelfLinkQuery Don't add query info to self link for Models
+	 * @param bool $ignorePaging Will not load paging mechanism
 	 * @return array
 	 */
-	public function toApiArray( $withKeys = false, $hideLink = false, $hideSelfLinkQuery = false ) {
+	public function toApiArray( $relationsDepth = -1, $hideLinks = false, $withKeys = false, $ignorePaging = false ) {
 		$count = 0;
 		$modelsArray = [];
-		$paginator = $this->paginate();
+		$paginator = $ignorePaging ? $this : $this->paginate();
 		foreach ( $paginator as $itemKey => $item ) {
 			/** @var $item Model|Collection */
-			$key = ( $withKeys ? $itemKey : $count );
-			if ( $item instanceof Collection ) {
-				$item = $item->toApiArray( true, true, true  )[ 'data' ] ?? [];
+			if ( $item instanceof self ) {
+				$item = $item->toApiArray( $relationsDepth + 1, true, false, true )[ 'data' ] ?? [];
 			}
-			else if ( $item instanceof Model ) {
-				$item = $item->toApiArray( true, true, true  );
+			else if ( $item instanceof Model || $item instanceof RestfulRecord ) {
+				$item = $item->toApiArray( $relationsDepth + 1, true );
 			}
 
-			$modelsArray[ 'data' ][ $key ] = $item;
+			$modelsArray[ 'data' ][ $withKeys ? $itemKey : $count ] = $item;
 			$count++;
 		}
 
@@ -52,11 +53,11 @@ class ModelCollection extends Collection
 		// remove page=0|1 param for caching performance
 		if ( $request->query->get( 'page' ) <= 1 ) {
 			$request->query->remove( 'page' );
-			$request->server->set( 'QUERY_STRING', Request::normalizeQueryString( http_build_query( $request->query->all() ) ) );
+//			$request->server->set( 'QUERY_STRING', Request::normalizeQueryString( http_build_query( $request->query->all() ) ) );
 		}
 
 		$modelsArray[ 'count' ] = $paginator->count();
-		if ( $paginator->hasPages() ) {
+		if ( !$ignorePaging && $paginator->hasPages() ) {
 			$page = $paginator->currentPage();
 			$paginator->setRootModel( $this->getRootModel() );
 
@@ -69,7 +70,7 @@ class ModelCollection extends Collection
 			$modelsArray[ 'page' ] = $page;
 			$modelsArray[ 'total_pages' ] = $paginator->lastPage();
 
-			if ( !$hideLink && $paginator->previousPageUrl() ) {
+			if ( !$hideLinks && $paginator->previousPageUrl() ) {
 				if ( $page - 1 > 1 ) {
 					$modelsArray[ 'links' ][ 'prev' ] = $paginator->previousPageUrl();
 				}
@@ -82,8 +83,10 @@ class ModelCollection extends Collection
 			}
 		}
 
-		if ( !$hideLink ) {
-			$modelsArray[ 'links' ][ 'self' ] = $this->getRootModel()->uri( 'show' );
+		if ( !$hideLinks ) {
+			// this is a "collection", so don't pass any params
+			$r = Request::create( $this->getRootModel()->uri( 'show', [''] ) );
+			$modelsArray[ 'links' ][ 'self' ] = $request->query->count() ? $r->fullUrlWithQuery( $request->all() ) : $r->url();
 		}
 
 		return $modelsArray;

@@ -4,6 +4,7 @@ namespace App\Database\Models;
 use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiModelFilter;
 use App\Database\Observers\ModelObserver;
+use App\Http\Request;
 use App\Support\Traits\SoftMacroable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,6 @@ use ixavier\Libraries\Core\RestfulRecord;
 use ixavier\Libraries\Http\XUrl;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Class Model represents a MongoDB model
@@ -104,9 +104,10 @@ abstract class Model extends Moloquent
 	 * @throws \Illuminate\Database\Eloquent\MassAssignmentException
 	 */
 	public function fill( array $attributes ) {
-		$this->__fixedAttributes = RestfulRecord::fixAttributes( $attributes );
+		$this->__fixedAttributes = $attributes = RestfulRecord::fixAttributes( $attributes );
+		$attributes = RestfulRecord::cleanAttributes( $attributes );
 
-		return parent::fill( RestfulRecord::cleanAttributes( $this->__fixedAttributes ) );
+		return parent::fill( $attributes );
 	}
 
 	/**
@@ -126,7 +127,7 @@ abstract class Model extends Moloquent
 	 * @return array
 	 */
 	public function getDirty() {
-		return parent::getDirty();
+		parent::getDirty();
 	}
 
 	/**
@@ -168,55 +169,29 @@ abstract class Model extends Moloquent
 	/**
 	 * API array representation of this model
 	 *
-	 * @param bool $withKeys Show keys for Collections
-	 * @param bool $hideLink Hide self link in Models
+	 * @param int $relationsDepth Current depth of relations loaded. Default = 1
 	 * @param bool $hideSelfLinkQuery Don't add query info to self link for Models
 	 * @return array
 	 */
-	public function toApiArray( $withKeys = true, $hideLink = false, $hideSelfLinkQuery = false ) {
+	public function toApiArray( $relationsDepth = 0, $hideSelfLinkQuery = false ) {
 		// load relations
-		$relations = null;
-		if ( !request( 'ignoreRelations' ) ) {
-			if ( request( 'separateRelations' ) ) {
-				$relations = $this->getCollectionRelations()->toApiArray( true, true );
-				unset( $relations[ 'count' ] );
-			}
-			else {
-				$this->mountRelations();
-			}
+		$relations = [];
+
+		if ( $relationsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
+			$relations = $this
+					->getCollectionRelations()
+					->toApiArray( $relationsDepth, true, false, true )[ 'data' ] ?? [];
 		}
+
+		$r = Request::create( $this->uri( 'show' ) );
 
 		$modelArray = [
 			'data' => $this->attributesToArray(),
+			'relations' => $relations,
+			'links' => [
+				'self' => $hideSelfLinkQuery ? $r->url() : $r->fullUrl()
+			]
 		];
-
-		array_walk_recursive( $modelArray, function( &$item, $key ) {
-			if ( is_object( $item ) ) {
-				if ( $item instanceof Collection ) {
-					$item = $item->toApiArray( true, true, true )[ 'data' ] ?? [];
-				}
-				else if ( $item instanceof self ) {
-					$item = $item->toApiArray( true, true, true );
-				}
-			}
-		} );
-
-		if ( request( 'separateRelations' ) ) {
-			$modelArray[ 'relations' ] = $relations[ 'data' ] ?? new \stdClass;
-		}
-
-		// don't show links
-//		if ( !$hideLink ) {
-		// don't include query in URI
-		$oldQuery = request()->query;
-		if ( $hideSelfLinkQuery ) {
-			request()->query = new ParameterBag();
-		}
-		$modelArray[ 'links' ][ 'self' ] = $this->uri( 'show' );
-		if ( $hideSelfLinkQuery ) {
-			request()->query = $oldQuery;
-		}
-//		}
 
 		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
 		// filter out fields based on request params

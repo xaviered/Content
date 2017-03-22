@@ -21,13 +21,22 @@ class ApiSearchFilter extends FilterBase
 				list( $fieldName, $logicalOperator ) = explode( ':', $fieldName, 2 );
 			}
 
-			if ( in_array( $fieldName, [ 'page', 'page_size' ] ) ) {
+			if ( in_array( $fieldName, $this->getIgnoreFields() ) ) {
 				continue;
 			}
 
 			// turn list to array
 			if ( strpos( $fieldValue, ',' ) ) {
 				$fieldValue = explode( ',', $fieldValue );
+			}
+			// numbers
+			else if ( is_string( $fieldValue ) ) {
+				if ( preg_match( '/^[\d]+\.\d+$/', $fieldValue ) ) {
+					$fieldValue = floatval( $fieldValue );
+				}
+				else if ( preg_match( '/^\d+$/', $fieldValue ) ) {
+					$fieldValue = intval( $fieldValue );
+				}
 			}
 
 			$this->addWhereClause( $query, $fieldName, $logicalOperator, $fieldValue );

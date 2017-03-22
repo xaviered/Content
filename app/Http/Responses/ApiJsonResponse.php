@@ -22,10 +22,10 @@ class ApiJsonResponse extends JsonResponse
 		$response = [];
 		if ( $model ) {
 			// model(s)
-			if ( is_subclass_of( $model, Model::class ) ) {
+			if ( $model instanceof Model ) {
 				$response = $model->toApiArray();
 			}
-			else if ( is_subclass_of( $model, Collection::class ) ) {
+			else if ( $model instanceof Collection ) {
 				$response = $model->toApiArray();
 
 			}

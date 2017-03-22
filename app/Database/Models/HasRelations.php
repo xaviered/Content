@@ -35,42 +35,26 @@ trait HasRelations
 		return $this;
 	}
 
-	/**
-	 * Mounts relations into object's attributes
-	 *
-	 * @return $this
-	 */
-	public function mountRelations() {
-		$relations = $this->retrieveRelations();
-		foreach ( $relations as $relationKey => $relation ) {
-			$this->{$relationKey} = $relation;
-		}
-
-		return $this;
-	}
-
 	// @todo: Make sure we always return an array of Collections
 	/**
 	 * Load and get all relations for the model.
 	 *
-	 * @return array
+	 * @return ModelCollection[]
 	 */
 	protected function retrieveRelations() {
 		$relations = [];
 		$relationQueries = $this->getRelationshipQueryBuilder();
 
-		// @todo: Try to optimize this query so that it only executes one query, not all of them
+		// @todo: Try to optimize this query so that it only executes one query, not all of them individually
 		foreach ( $relationQueries as $attribute => $relationQuery ) {
 			// many relationships
 			if ( is_array( $relationQuery ) ) {
-				/** @var ModelCollection $col */
-				$col = $this->newCollection();
-				foreach ( $relationQuery as $itemRelationQuery ) {
+				$cols = [];
+				foreach ( $relationQuery as $itemRelationKey => $itemRelationQuery ) {
 					/** @var Builder $itemRelationQuery */
-					$col = $this->newCollection( $col->merge( $itemRelationQuery->get() )->getDictionary() );
+					$cols[ $itemRelationKey ] = $itemRelationQuery->get();
 				}
-
-				$relations[ $attribute ] = $col;
+				$relations[ $attribute ] = $this->newCollection( $cols );
 			}
 			// one relationship
 			else {

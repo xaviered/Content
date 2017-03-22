@@ -15,6 +15,12 @@ use App\Http\Request;
  */
 abstract class ModelController extends Controller
 {
+	// @todo: parameters from routes do not get stored in query
+	// i.e. /api/donatos/navitem?page_size=1&type=navitem
+	// request query does not have 'type'!
+	//
+	// add it with $request->server->set( 'QUERY_STRING', Request::normalizeQueryString( http_build_query( $request->query->all() + $params ) ) );
+
 	/**
 	 * Display the specified resource.
 	 *

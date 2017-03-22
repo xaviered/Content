@@ -8,4 +8,5 @@ namespace App\Database\Observers;
  */
 trait ModelObserverTrait
 {
+
 }
