@@ -13,7 +13,7 @@ abstract class FilterBase
 	protected $request;
 
 	/** @var array Fields to ignore for filtering */
-	protected $ignoreFields = [ 'page', 'page_size', 'relations_max_depth' ];
+	protected $ignoreFields = [ 'page', 'page_size', 'relations_max_depth', 'ignore_relations' ];
 
 	/**
 	 * FilterBase constructor.

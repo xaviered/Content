@@ -5,6 +5,7 @@ use App\Database\Models\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use ixavier\Libraries\Core\ModelCollection as X_ModelCollection;
 use ixavier\Libraries\Core\RestfulRecord;
 
 /**
@@ -21,7 +22,7 @@ class ModelCollection extends Collection
 	protected $rootModel;
 
 	/**
-	 * Same as toArray() but ready to be sent to an API
+	 * API array representation of this collection
 	 *
 	 * @param int $relationsDepth Current depth of relations loaded. Default = 1
 	 * @param bool $hideLinks Hide links section
@@ -34,8 +35,7 @@ class ModelCollection extends Collection
 		$modelsArray = [];
 		$paginator = $ignorePaging ? $this : $this->paginate();
 		foreach ( $paginator as $itemKey => $item ) {
-			/** @var $item Model|Collection */
-			if ( $item instanceof self ) {
+			if ( $item instanceof self || $item instanceof X_ModelCollection ) {
 				$item = $item->toApiArray( $relationsDepth + 1, true, false, true )[ 'data' ] ?? [];
 			}
 			else if ( $item instanceof Model || $item instanceof RestfulRecord ) {
@@ -85,7 +85,7 @@ class ModelCollection extends Collection
 
 		if ( !$hideLinks ) {
 			// this is a "collection", so don't pass any params
-			$r = Request::create( $this->getRootModel()->uri( 'show', [''] ) );
+			$r = Request::create( $this->getRootModel()->uri( 'show', [ '' ] ) );
 			$modelsArray[ 'links' ][ 'self' ] = $request->query->count() ? $r->fullUrlWithQuery( $request->all() ) : $r->url();
 		}
 

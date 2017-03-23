@@ -44,7 +44,6 @@ trait HasRelations
 	protected function retrieveRelations() {
 		$relations = [];
 		$relationQueries = $this->getRelationshipQueryBuilder();
-
 		// @todo: Try to optimize this query so that it only executes one query, not all of them individually
 		foreach ( $relationQueries as $attribute => $relationQuery ) {
 			// many relationships
@@ -52,12 +51,14 @@ trait HasRelations
 				$cols = [];
 				foreach ( $relationQuery as $itemRelationKey => $itemRelationQuery ) {
 					/** @var Builder $itemRelationQuery */
+//					$cols[ $itemRelationKey ] = $itemRelationQuery->get( [ 'ignore_relations' => 1 ] );
 					$cols[ $itemRelationKey ] = $itemRelationQuery->get();
 				}
 				$relations[ $attribute ] = $this->newCollection( $cols );
 			}
 			// one relationship
 			else {
+//				$relations[ $attribute ] = $this->newCollection( $relationQuery->get( [ 'ignore_relations' => 1 ] )->getDictionary() );
 				$relations[ $attribute ] = $this->newCollection( $relationQuery->get()->getDictionary() );
 			}
 		}
@@ -132,7 +133,7 @@ trait HasRelations
 
 			// local service
 			if ( $localService ) {
-				$parentAttr = $xUrl->getRestfulRecordAttributes();
+				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
 				// @todo: Find better way to get the app from a resource
 				$parentAttr[ '__app' ] = method_exists( $this, 'getApp' ) ? $this->getApp() : $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
@@ -157,7 +158,7 @@ trait HasRelations
 			// local service
 			if ( $localService ) {
 				/** @var ContentXUrl $xUrl */
-				$parentAttr = $xUrl->getRestfulRecordAttributes();
+				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
@@ -176,7 +177,7 @@ trait HasRelations
 			// local service
 			if ( $localService ) {
 				/** @var ContentXUrl $xUrl */
-				$parentAttr = $xUrl->getRestfulRecordAttributes();
+				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
@@ -195,7 +196,7 @@ trait HasRelations
 			// local service
 			if ( $localService ) {
 				/** @var ContentXUrl $xUrl */
-				$parentAttr = $xUrl->getRestfulRecordAttributes();
+				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();

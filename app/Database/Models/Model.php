@@ -177,10 +177,12 @@ abstract class Model extends Moloquent
 		// load relations
 		$relations = [];
 
-		if ( $relationsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
-			$relations = $this
-					->getCollectionRelations()
-					->toApiArray( $relationsDepth, true, false, true )[ 'data' ] ?? [];
+		if ( !request( 'ignore_relations' ) ) {
+			if ( $relationsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
+				$relations = $this
+						->getCollectionRelations()
+						->toApiArray( $relationsDepth, true, true, true )[ 'data' ] ?? [];
+			}
 		}
 
 		$r = Request::create( $this->uri( 'show' ) );
