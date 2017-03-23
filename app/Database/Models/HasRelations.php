@@ -45,21 +45,30 @@ trait HasRelations
 		$relations = [];
 		$relationQueries = $this->getRelationshipQueryBuilder();
 		// @todo: Try to optimize this query so that it only executes one query, not all of them individually
-		foreach ( $relationQueries as $attribute => $relationQuery ) {
+		foreach ( $relationQueries as $attribute => $relationQueryInfo ) {
+			list( $relationQuery, $resultsCallback ) = $relationQueryInfo;
 			// many relationships
 			if ( is_array( $relationQuery ) ) {
 				$cols = [];
-				foreach ( $relationQuery as $itemRelationKey => $itemRelationQuery ) {
+				foreach ( $relationQueryInfo as $itemRelationKey => $itemRelationInfo ) {
 					/** @var Builder $itemRelationQuery */
-//					$cols[ $itemRelationKey ] = $itemRelationQuery->get( [ 'ignore_relations' => 1 ] );
-					$cols[ $itemRelationKey ] = $itemRelationQuery->get();
+					list( $itemRelationQuery, $resultsCallback ) = $itemRelationInfo;
+					$col = $itemRelationQuery->get();
+					if ( isset( $resultsCallback ) ) {
+						$resultsCallback( $col );
+					}
+					$cols[ $itemRelationKey ] = $col;
+
 				}
 				$relations[ $attribute ] = $this->newCollection( $cols );
 			}
 			// one relationship
 			else {
-//				$relations[ $attribute ] = $this->newCollection( $relationQuery->get( [ 'ignore_relations' => 1 ] )->getDictionary() );
-				$relations[ $attribute ] = $this->newCollection( $relationQuery->get()->getDictionary() );
+				$col = $this->newCollection( $relationQuery->get()->getDictionary() );
+				if ( isset( $resultsCallback ) ) {
+					$resultsCallback( $col );
+				}
+				$cols[ $attribute ] = $col;
 			}
 		}
 
@@ -122,7 +131,9 @@ trait HasRelations
 	 * Given a ContentXUrl, will get a Closure to get query to obtain relation
 	 *
 	 * @param ContentXUrl $xUrl
-	 * @return Builder|RestfulRecord|null Returns null if no valid relation found
+	 * @return array Returns null if no valid relation found
+	 *  First arg: Builder|RestfulRecord|null
+	 *  Second arg: \Closure callback after getting results
 	 */
 	protected function getContentRelationQuery( ContentXUrl $xUrl ) {
 		// @todo: check for same domain and so on
@@ -133,7 +144,7 @@ trait HasRelations
 
 			// local service
 			if ( $localService ) {
-				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
+				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				// @todo: Find better way to get the app from a resource
 				$parentAttr[ '__app' ] = method_exists( $this, 'getApp' ) ? $this->getApp() : $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
@@ -142,11 +153,21 @@ trait HasRelations
 					$attributes = array_merge( $attributes, $params->all() );
 				}
 
-				return Resource::query( $parentAttr )->where( $attributes );
+				return [
+					Resource::query( $parentAttr )->where( $attributes ),
+					function( &$collection ) {
+						$collection = $collection->first();
+					}
+				];
 			}
 			// external content service
 			else {
-				return RestfulRecord::query( $xUrl );
+				return [
+					RestfulRecord::query( $xUrl ),
+					function( &$collection ) {
+						$collection = $collection->first();
+					}
+				];
 			}
 		}
 		// many-to-many relationships stored on collection
@@ -158,7 +179,7 @@ trait HasRelations
 			// local service
 			if ( $localService ) {
 				/** @var ContentXUrl $xUrl */
-				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
+				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
@@ -166,10 +187,10 @@ trait HasRelations
 					$attributes = array_merge( $attributes, $params->all() );
 				}
 
-				return Resource::query( $parentAttr )->where( $attributes );
+				return [ Resource::query( $parentAttr )->where( $attributes ) ];
 			}
 			else {
-				return RestfulRecord::query( $xUrl );
+				return [ RestfulRecord::query( $xUrl ) ];
 			}
 		}
 		// one-to-one relationship with app
@@ -177,7 +198,7 @@ trait HasRelations
 			// local service
 			if ( $localService ) {
 				/** @var ContentXUrl $xUrl */
-				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
+				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
@@ -185,10 +206,20 @@ trait HasRelations
 					$attributes = array_merge( $attributes, $params->all() );
 				}
 
-				return App::query( $parentAttr )->where( $attributes );
+				return [
+					App::query( $parentAttr )->where( $attributes ),
+					function( &$collection ) {
+						$collection = $collection->first();
+					}
+				];
 			}
 			else {
-				return App::query( $xUrl );
+				return [
+					App::query( $xUrl ),
+					function( &$collection ) {
+						$collection = $collection->first();
+					}
+				];
 			}
 		}
 		// one-to-many relationships with apps
@@ -196,7 +227,7 @@ trait HasRelations
 			// local service
 			if ( $localService ) {
 				/** @var ContentXUrl $xUrl */
-				$parentAttr = $xUrl->getRestfulRecordAttributes(true);
+				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
@@ -204,10 +235,10 @@ trait HasRelations
 					$attributes = array_merge( $attributes, $params->all() );
 				}
 
-				return App::query( $parentAttr )->where( $attributes );
+				return [ App::query( $parentAttr )->where( $attributes ) ];
 			}
 			else {
-				return App::query( $xUrl );
+				return [ App::query( $xUrl ) ];
 			}
 		}
 
