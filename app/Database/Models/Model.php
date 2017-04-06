@@ -5,7 +5,6 @@ use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiModelFilter;
 use App\Database\Observers\ModelObserver;
 use App\Http\Request;
-use App\Support\Traits\SoftMacroable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use ixavier\Libraries\Core\RestfulRecord;
@@ -21,7 +20,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 abstract class Model extends Moloquent
 {
 	use SoftDeletes;
-	use SoftMacroable;
 	use HasRelations;
 
 	/** Key for created date */
