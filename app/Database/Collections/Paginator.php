@@ -1,13 +1,14 @@
 <?php
-namespace App\Database;
+namespace App\Database\Collections;
 
+use App\Database\Models\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
 /**
  * Custom Paginator
- * @package App\Database
+ * @package App\Database\Collections
  */
 class Paginator extends LengthAwarePaginator
 {

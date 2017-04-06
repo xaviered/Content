@@ -1,19 +1,26 @@
 <?php
-namespace App\Database;
+namespace App\Database\Models;
 
 use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiModelFilter;
+use App\Database\Observers\ModelObserver;
+use App\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use ixavier\Libraries\Core\RestfulRecord;
+use ixavier\Libraries\Http\XUrl;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class Model represents a MongoDB model
- * @package App\Model
+ *
+ * @package App\Database\Models
  */
 abstract class Model extends Moloquent
 {
 	use SoftDeletes;
+	use HasRelations;
 
 	/** Key for created date */
 	const CREATED_AT = 'createdOn';
@@ -26,6 +33,15 @@ abstract class Model extends Moloquent
 
 	/** @var bool Do not increment primary key */
 	public $incrementing = false;
+
+	/** @var array Casts these properties to a type of value */
+	protected $casts = [
+		'createdBy' => 'string',
+		'createdOn' => 'datetime',
+		'updatedBy' => 'string',
+		'updatedOn' => 'datetime',
+		'order' => 'integer'
+	];
 
 	/**
 	 * The attributes that should be mutated to dates.
@@ -40,6 +56,19 @@ abstract class Model extends Moloquent
 	/** @var array Don't guard any field and allow anything */
 	protected $guarded = [];
 
+	/** @var \Closure[] An array of dynamic relationship functions */
+	protected $dynamicRelations = [];
+
+	/** @var array|XUrl|string */
+	private $__fixedAttributes;
+
+	/**
+	 * Even handler
+	 */
+	public static function boot() {
+		self::observe( ModelObserver::class );
+	}
+
 	/**
 	 * Creates new model with default values if they are not present on $attributes
 	 *
@@ -47,27 +76,56 @@ abstract class Model extends Moloquent
 	 * @return static
 	 */
 	public static function create( array $attributes = [] ) {
-		return new static( static::prepareNew( $attributes ) );
-	}
-
-	/**
-	 * @param $attributes
-	 * @return array
-	 */
-	protected static function prepareNew( $attributes ) {
 		$time = time();
 		$userId = Auth::user() ? Auth::user()->id : 1;
 
-		return array_merge(
+		$attributes = array_merge(
 			$attributes,
 			[
 				'createdBy' => $userId,
 				'createdOn' => $time,
 				'updatedBy' => $userId,
-				'updatedOn' => $time,
-				'order' => 1
+				'updatedOn' => $time
 			]
 		);
+
+		return new static( $attributes );
+	}
+
+	// @todo: Remove from DB any attributes that are set to `null`
+	/**
+	 * Fill the model with an array of attributes.
+	 *
+	 * @param  array $attributes
+	 * @return self
+	 *
+	 * @throws \Illuminate\Database\Eloquent\MassAssignmentException
+	 */
+	public function fill( array $attributes ) {
+		$this->__fixedAttributes = $attributes = RestfulRecord::fixAttributes( $attributes );
+		$attributes = RestfulRecord::cleanAttributes( $attributes );
+
+		return parent::fill( $attributes );
+	}
+
+	/**
+	 * Gets fixed attributes, without being cleaned, so we can create more instances like these
+	 *
+	 * @return array|XUrl|string
+	 */
+	protected function getFixedAttributes() {
+		return $this->__fixedAttributes;
+	}
+
+	// @todo: Remove from DB any attributes that are set to `null`
+	/**
+	 * Get the cleaned attributes that have been changed since last sync.
+	 * Mainly used for cleaning attributes before updating
+	 *
+	 * @return array
+	 */
+	public function getDirty() {
+		parent::getDirty();
 	}
 
 	/**
@@ -77,7 +135,7 @@ abstract class Model extends Moloquent
 	 * @param array $parameters
 	 * @return string
 	 */
-	public function uri( $action = 'index', $parameters = null ) {
+	public function uri( $action = 'index', $parameters = [] ) {
 		if ( empty( $parameters ) ) {
 			$parameters = request()->query->all();
 		}
@@ -96,7 +154,7 @@ abstract class Model extends Moloquent
 	/**
 	 * Create a new Eloquent Collection instance.
 	 *
-	 * @param  array $models
+	 * @param  ModelCollection|Collection|array $models
 	 * @return ModelCollection
 	 */
 	public function newCollection( array $models = [] ) {
@@ -108,11 +166,32 @@ abstract class Model extends Moloquent
 
 	/**
 	 * API array representation of this model
+	 *
+	 * @param int $relationsDepth Current depth of relations loaded. Default = 1
+	 * @param bool $hideSelfLinkQuery Don't add query info to self link for Models
 	 * @return array
 	 */
-	public function toApiArray() {
-		$modelArray = [];
-		$modelArray[ 'data' ] = $this->attributesToArray();
+	public function toApiArray( $relationsDepth = 0, $hideSelfLinkQuery = false ) {
+		// load relations
+		$relations = [];
+
+		if ( !request( 'ignore_relations' ) ) {
+			if ( $relationsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
+				$relations = $this
+						->getCollectionRelations()
+						->toApiArray( $relationsDepth, true, true, true )[ 'data' ] ?? [];
+			}
+		}
+
+		$r = Request::create( $this->uri( 'show' ) );
+
+		$modelArray = [
+			'data' => $this->attributesToArray(),
+			'relations' => $relations,
+			'links' => [
+				'self' => $hideSelfLinkQuery ? $r->url() : $r->fullUrl()
+			]
+		];
 
 		// @todo: Refactor so that there is a FilterFactory instead of using Request for that
 		// filter out fields based on request params
@@ -121,25 +200,11 @@ abstract class Model extends Moloquent
 			->filter( $modelArray[ 'data' ] )
 		;
 
-		$relationships = $this->getCollectionRelations();
-		if ( count( $relationships ) ) {
-			$modelArray[ 'relationships' ] = $relationships->toApiArray( true );
-		}
-
-		$modelArray[ 'links' ][ 'self' ] = $this->uri( 'show' );
-
 		return $modelArray;
 	}
 
 	/**
-	 * @return ModelCollection
-	 */
-	public function getCollectionRelations() {
-		return new ModelCollection( $this->getRelations() );
-	}
-
-	/**
-	 * Perform the actual delete query on this model instance.
+	 * Marks this model as deleted
 	 *
 	 * @return void
 	 */

@@ -12,7 +12,7 @@ return [
     | any other location as required by the application or its packages.
     */
 
-    'name' => 'ixavier/contenthouse',
+    'name' => 'ixavier/content',
 
     /*
     |--------------------------------------------------------------------------
@@ -123,6 +123,18 @@ return [
     'log' => env('APP_LOG', 'single'),
 
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
+
+	/*
+	|--------------------------------------------------------------------------
+	| Scheme name
+	|--------------------------------------------------------------------------
+	|
+	| When parsing custom ixavier URLs (XUrl), use this service name to
+	| determine local service/site.
+	|
+	*/
+
+	'serviceName' => 'content',
 
     /*
     |--------------------------------------------------------------------------

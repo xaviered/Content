@@ -12,6 +12,9 @@ abstract class FilterBase
 	/** @var Request */
 	protected $request;
 
+	/** @var array Fields to ignore for filtering */
+	protected $ignoreFields = [ 'page', 'page_size', 'relations_max_depth', 'ignore_relations' ];
+
 	/**
 	 * FilterBase constructor.
 	 * @param Request $request
@@ -32,4 +35,18 @@ abstract class FilterBase
 	 * @return bool
 	 */
 	abstract public function filter( &$data );
+
+	/**
+	 * @return array
+	 */
+	public function getIgnoreFields() {
+		return $this->ignoreFields;
+	}
+
+	/**
+	 * @param array $ignoreFields
+	 */
+	public function setIgnoreFields( array $ignoreFields ) {
+		$this->ignoreFields = $ignoreFields;
+	}
 }

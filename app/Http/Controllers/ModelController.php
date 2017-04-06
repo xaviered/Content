@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiSearchFilter;
 use App\Http\Responses\ApiJsonResponse;
-use App\Database\Model;
+use App\Database\Models\Model;
 use App\Http\Request;
-use Illuminate\Support\Facades\Facade;
-use Jenssegers\Mongodb\Query\Builder;
 
 /**
  * Class ModelController has helper methods to handle model CRUD methods.
@@ -17,33 +15,16 @@ use Jenssegers\Mongodb\Query\Builder;
  */
 abstract class ModelController extends Controller
 {
-	/**
-	 * @return Model|Builder|Facade Class string representation of the model. i.e. App::class
-	 */
-	abstract public function rootModel();
-
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @param  Request $request
-	 * @return ApiJsonResponse
-	 */
-	public function store( Request $request ) {
-
-		$updates = $request->all();
-		unset( $updates[ '_id' ] );
-
-		/** @var Model $model */
-		$model = ( $this->rootModel() )::create( $updates );
-		$model->saveOrFail();
-
-		return new ApiJsonResponse( $model );
-	}
+	// @todo: parameters from routes do not get stored in query
+	// i.e. /api/donatos/navitem?page_size=1&type=navitem
+	// request query does not have 'type'!
+	//
+	// add it with $request->server->set( 'QUERY_STRING', Request::normalizeQueryString( http_build_query( $request->query->all() + $params ) ) );
 
 	/**
 	 * Display the specified resource.
 	 *
-	 * @param  Model $model
+	 * @param  \App\Database\Models\Model $model
 	 * @return ApiJsonResponse
 	 */
 	public function showModel( Model $model ) {
@@ -53,7 +34,7 @@ abstract class ModelController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 *
-	 * @param  \Illuminate\Http\Request $request
+	 * @param  Request $request
 	 * @param  Model $model
 	 * @return ApiJsonResponse
 	 */

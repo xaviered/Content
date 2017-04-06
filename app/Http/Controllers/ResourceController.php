@@ -18,13 +18,6 @@ class ResourceController extends ModelController
 	protected $app;
 
 	/**
-	 * @return Resource Class string representation of the model. i.e. App::class
-	 */
-	public function rootModel() {
-		return Resource::class;
-	}
-
-	/**
 	 * Display a listing of the resource by $type under an given $app.
 	 *
 	 * @param Request $request
@@ -34,7 +27,7 @@ class ResourceController extends ModelController
 	 */
 	public function index( Request $request, App $app, $type ) {
 		return new ApiJsonResponse(
-			$this->getModelCollection( $request, ( $this->rootModel() )::queryFromType( $type, $app ) )
+			$this->getModelCollection( $request, Resource::query( [ 'type' => $type, '__app' => $app ] ) )
 		);
 	}
 
@@ -48,7 +41,7 @@ class ResourceController extends ModelController
 	 * @internal param Resource $resourceInstance
 	 */
 	public function show( App $app, $type, $resource ) {
-		$resource = ( $this->rootModel() )::queryFromType( $type, $app )
+		$resource = Resource::query( [ 'type' => $type, '__app' => $app ] )
 			->where( 'slug', $resource )
 			->firstOrFail()
 		;
@@ -57,14 +50,38 @@ class ResourceController extends ModelController
 	}
 
 	/**
+	 * Store a newly created resource in storage.
+	 *
+	 * @param Request $request
+	 * @param string $app slug of app
+	 * @param string $type
+	 * @return ApiJsonResponse
+	 */
+	public function store( Request $request, $app, $type ) {
+
+		$attributes = array_merge(
+			[ '__app' => $app, 'type' => $type ],
+			$request->all()
+		);
+		unset( $attributes[ '_id' ] );
+
+		$model = Resource::create( $attributes );
+		$model->saveOrFail();
+
+		return new ApiJsonResponse( $model );
+	}
+
+	/**
 	 * Update the specified resource in storage.
 	 *
-	 * @param  Request $request
-	 * @param  App $app
+	 * @param Request $request
+	 * @param App $app
+	 * @param string $type
+	 * @param string $resource Resource slug
 	 * @return JsonResponse
 	 */
 	public function update( Request $request, App $app, $type, $resource ) {
-		$resource = ( $this->rootModel() )::queryFromType( $type, $app )
+		$resource = Resource::query( [ 'type' => $type, '__app' => $app ] )
 			->where( 'slug', $resource )
 			->firstOrFail()
 		;
@@ -75,11 +92,13 @@ class ResourceController extends ModelController
 	/**
 	 * Remove the specified resource from storage.
 	 *
-	 * @param  App $app
+	 * @param App $app
+	 * @param string $type
+	 * @param string $resource Resource slug
 	 * @return JsonResponse
 	 */
 	public function destroy( App $app, $type, $resource ) {
-		$resource = ( $this->rootModel() )::queryFromType( $type, $app )
+		$resource = Resource::query( [ 'type' => $type, '__app' => $app ] )
 			->where( 'slug', $resource )
 			->firstOrFail()
 		;
@@ -94,7 +113,7 @@ class ResourceController extends ModelController
 	protected function getApp( Request $request = null ) {
 		if ( empty( $this->app ) ) {
 			// @todo: do not use segment, use `app` slug or something
-			$this->app = App::query()->where( [ 'slug' => $request->segment( 3 ) ] )->firstOrFail();
+			$this->app = App::query()->where( [ 'slug' => $request->segment( 2 ) ] )->firstOrFail();
 		}
 
 		return $this->app;

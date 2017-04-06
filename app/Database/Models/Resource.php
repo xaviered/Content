@@ -1,8 +1,6 @@
 <?php
 namespace App\Database\Models;
 
-use App\Database\Model;
-use App\Observers\ResourceObserver;
 use Illuminate\Support\Facades\App as LaravelApp;
 
 /**
@@ -18,41 +16,43 @@ class Resource extends Model
 	/** @var App $app */
 	protected $app;
 
-	/** @var string Default to content house database */
+	/** @var string Default to content house collection in MongoDB */
 	protected $collection = 'contenthouse';
+
+	/** @var string Default to content house database in regular DBs */
 	protected $table = 'contenthouse';
 
 	/**
 	 * Resource constructor.
+	 *
 	 * @param array $attributes
 	 * @param App|string $app Load resource from the given app (or slug of app)
 	 */
-	public function __construct( array $attributes = [], $app = null ) {
-		if ( is_string( $app ) && !empty( $app ) ) {
-			$appSlug = $app;
-			$app = null;
-		}
-		else {
-			// @todo: do not use segment, use `app` slug or something
-			$appSlug = $attributes[ 'app' ] ?? request()->segment( 3 );
-		}
+	public function __construct( $attributes = [] ) {
+		parent::__construct( $attributes );
 
-		if ( !$app ) {
-			if ( !empty( $appSlug ) ) {
-				$app = App::query()->where( [ 'slug' => $appSlug ] )->firstOrFail();
+		$fixedAttributes = $this->getFixedAttributes();
+
+		// load app
+		if ( !empty( $fixedAttributes[ '__app' ] ) ) {
+			if ( is_string( $fixedAttributes[ '__app' ] ) ) {
+				$this->app = App::query()
+					->where( [ 'slug' => $fixedAttributes[ '__app' ] ] )
+					->firstOrFail()
+				;
+			}
+			else {
+				$this->app = $fixedAttributes[ '__app' ];
 			}
 		}
-
-		$this->app = $app;
-		parent::__construct( $attributes );
 	}
 
 	/**
 	 * Perform tasks once for all App models
 	 */
-	public static function boot() {
-		self::observe( ResourceObserver::class );
-	}
+//	public static function boot() {
+//		self::observe( ResourceObserver::class );
+//	}
 
 	/**
 	 * Get the custom connection for this model.
@@ -61,29 +61,30 @@ class Resource extends Model
 	 */
 	public function getConnectionName() {
 		$app = $this->getApp();
-		$config = LaravelApp::make( 'config' );
-		$dbName = $app->getResourcesConnectionName();
+		if ( $app ) {
+			$config = LaravelApp::make( 'config' );
+			$dbName = $app->getResourcesConnectionName();
 
-		// add configs for custom connection
-		$conn = $config->get( 'database.connections.' . $dbName );
-		if ( !isset( $conn ) ) {
-			$appConn = $app->getConnection();
-			$newConnection = [
-				'driver' => null,
-				'host' => $config->get( 'database.connections.hubs.' . $app->hub ),
-				'port' => null,
-				'database' => $dbName,
-				'username' => null,
-				'password' => null,
-				'options.db' => null
-			];
-			foreach ( $newConnection as $optionName => $optionValue ) {
-				if ( empty( $optionValue ) ) {
-					$optionValue = $appConn->getConfig( $optionName );
+			// add configs for custom connection
+			$conn = $config->get( 'database.connections.' . $dbName );
+			if ( !isset( $conn ) ) {
+				$appConn = $app->getConnection();
+				$newConnection = [
+					'driver' => null,
+					'host' => $config->get( 'database.connections.hubs.' . $app->hub ),
+					'port' => null,
+					'database' => $dbName,
+					'username' => null,
+					'password' => null,
+					'options.db' => null
+				];
+				foreach ( $newConnection as $optionName => $optionValue ) {
+					if ( empty( $optionValue ) ) {
+						$optionValue = $appConn->getConfig( $optionName );
+					}
+					$config->set( 'database.connections.' . $dbName . '.' . $optionName, $optionValue );
 				}
-				$config->set( 'database.connections.' . $dbName . '.' . $optionName, $optionValue );
 			}
-
 			$this->setConnection( $dbName );
 		}
 
@@ -117,17 +118,66 @@ class Resource extends Model
 	}
 
 	/**
-	 * Begin querying the model.
-	 *
-	 * @param string $type
-	 * @param App|string $app App or slug of app
-	 * @return \Illuminate\Database\Eloquent\Builder
+	 * Gets the full path to this requested resource
+	 * @return string
 	 */
-	public static function queryFromType( $type, $app = null ) {
-		$r = ( new static( [ 'type' => $type ], $app ) );
+	public function getRequestedResourceSlug() {
+		$parts = [];
+		$app = $this->getApp();
+		if ( $app ) {
+			$parts[] = $app->slug;
+		}
+		if ( !empty( $this->type ) ) {
+			$parts[] = $this->type;
+		}
+		if ( !empty( $this->slug ) ) {
+			$parts[] = $this->slug;
+		}
 
-		// @todo: This is returning delete items by default; disable this
-		return $r->newQuery();
+		return $parts ? '/' . implode( '/', $parts ) : '';
+	}
+
+	/**
+	 * Create a new instance of the given model.
+	 * Overwrites parent function to add app and type.
+	 *
+	 * @param  array $attributes
+	 * @param  bool $exists
+	 * @return static
+	 */
+	public function newInstance( $attributes = [], $exists = false ) {
+		$attributes = array_merge(
+			[
+				'type' => $this->type ?? null,
+				'__app' => $this->app ?? null
+			],
+			$attributes
+		);
+
+		// This method just provides a convenient way for us to generate fresh model
+		// instances of this current model. It is particularly useful during the
+		// hydration of new objects via the Eloquent query builder instances.
+		$model = new static( (array)$attributes );
+
+		$model->exists = $exists;
+
+		$model->setConnection(
+			$this->getConnectionName()
+		);
+
+		return $model;
+	}
+
+	/**
+	 * Begin querying the model.
+	 * Overwrites parent function to add app and type.
+	 *
+	 * @param array $attributes Pass in type and app for resource
+	 * @return \Illuminate\Database\Eloquent\Builder|self;
+	 */
+	public static function query( ...$attributes ) {
+		// @todo: This is returning deleted items by default; disable this
+		return ( new static( ...$attributes ) )->newQuery();
 	}
 
 	/**
@@ -156,5 +206,4 @@ class Resource extends Model
 
 		return parent::uri( $action, $parameters );
 	}
-
 }
