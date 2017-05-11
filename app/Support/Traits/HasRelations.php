@@ -1,7 +1,8 @@
 <?php
-namespace App\Database\Models;
+namespace App\Support\Traits;
 
 use App\Database\Collections\ModelCollection;
+use App\Database\Models\Resource;
 use Illuminate\Database\Eloquent\Builder;
 use ixavier\Libraries\Core\RestfulRecord;
 use ixavier\Libraries\Http\ContentXUrl;

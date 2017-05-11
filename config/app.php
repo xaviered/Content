@@ -51,7 +51,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://contenthouse.ixavier.com'),
+    'url' => env('APP_URL', 'http://content.ixavier.com'),
 
     /*
     |--------------------------------------------------------------------------

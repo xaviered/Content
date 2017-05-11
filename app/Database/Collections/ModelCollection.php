@@ -1,7 +1,7 @@
 <?php
 namespace App\Database\Collections;
 
-use App\Database\Models\Model;
+use App\Database\Core\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -18,7 +18,7 @@ class ModelCollection extends Collection
 	/** @var int Items per page */
 	protected static $perPage;
 
-	/** @var Model */
+	/** @var \App\Database\Core\Model */
 	protected $rootModel;
 
 	/**
@@ -93,7 +93,7 @@ class ModelCollection extends Collection
 	}
 
 	/**
-	 * @return Model
+	 * @return \App\Database\Core\Model
 	 */
 	public function getRootModel() {
 		return $this->rootModel;

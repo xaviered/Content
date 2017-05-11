@@ -1,10 +1,11 @@
 <?php
 namespace App\Database\Models;
 
+use App\Database\Core\Model;
 use Illuminate\Support\Facades\App as LaravelApp;
 
 /**
- * Class Resource holds resources for a particular App
+ * Class Resource is the representation of a basic working Model tied to a particular App
  *
  * @package App\Model
  */
@@ -17,10 +18,10 @@ class Resource extends Model
 	protected $app;
 
 	/** @var string Default to content house collection in MongoDB */
-	protected $collection = 'contenthouse';
+	protected $collection = 'content';
 
 	/** @var string Default to content house database in regular DBs */
-	protected $table = 'contenthouse';
+	protected $table = 'content';
 
 	/**
 	 * Resource constructor.
@@ -98,7 +99,7 @@ class Resource extends Model
 	 */
 	public function getTable() {
 		$this->getConnection();
-		$this->collection = !empty( $this->type ) ? 't_' . $this->type : 'contenthouse';
+		$this->collection = !empty( $this->type ) ? 't_' . $this->type : 'content';
 
 		return $this->collection;
 	}
