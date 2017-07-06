@@ -86,6 +86,6 @@ return [
     |
     */
 
-    'prefix' => 'contenthouse',
+    'prefix' => 'content',
 
 ];

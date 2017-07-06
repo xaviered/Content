@@ -1,7 +1,7 @@
 <?php
 namespace App\Database\Collections;
 
-use App\Database\Models\Model;
+use App\Database\Core\Model;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
@@ -54,7 +54,7 @@ class Paginator extends LengthAwarePaginator
 	}
 
 	/**
-	 * @param Model $rootModel
+	 * @param \App\Database\Core\Model $rootModel
 	 * @return $this Chainnable method
 	 */
 	public function setRootModel( $rootModel ) {

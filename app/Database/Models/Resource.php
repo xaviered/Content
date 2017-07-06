@@ -1,10 +1,11 @@
 <?php
 namespace App\Database\Models;
 
+use App\Database\Core\Model;
 use Illuminate\Support\Facades\App as LaravelApp;
 
 /**
- * Class Resource holds resources for a particular App
+ * Class Resource is the representation of a basic working Model tied to a particular App
  *
  * @package App\Model
  */
@@ -17,35 +18,10 @@ class Resource extends Model
 	protected $app;
 
 	/** @var string Default to content house collection in MongoDB */
-	protected $collection = 'contenthouse';
+	protected $collection = 'content';
 
 	/** @var string Default to content house database in regular DBs */
-	protected $table = 'contenthouse';
-
-	/**
-	 * Resource constructor.
-	 *
-	 * @param array $attributes
-	 * @param App|string $app Load resource from the given app (or slug of app)
-	 */
-	public function __construct( $attributes = [] ) {
-		parent::__construct( $attributes );
-
-		$fixedAttributes = $this->getFixedAttributes();
-
-		// load app
-		if ( !empty( $fixedAttributes[ '__app' ] ) ) {
-			if ( is_string( $fixedAttributes[ '__app' ] ) ) {
-				$this->app = App::query()
-					->where( [ 'slug' => $fixedAttributes[ '__app' ] ] )
-					->firstOrFail()
-				;
-			}
-			else {
-				$this->app = $fixedAttributes[ '__app' ];
-			}
-		}
-	}
+	protected $table = 'content';
 
 	/**
 	 * Perform tasks once for all App models
@@ -98,7 +74,7 @@ class Resource extends Model
 	 */
 	public function getTable() {
 		$this->getConnection();
-		$this->collection = !empty( $this->type ) ? 't_' . $this->type : 'contenthouse';
+		$this->collection = !empty( $this->type ) ? 't_' . $this->type : 'content';
 
 		return $this->collection;
 	}
@@ -111,10 +87,40 @@ class Resource extends Model
 	}
 
 	/**
-	 * @param App $app
+	 * @param App|string $app App or slug of app
+	 * @return $this Chainable method.
 	 */
-	public function setApp( App $app ) {
-		$this->app = $app;
+	public function setApp( $app ) {
+		if ( is_string( $app ) ) {
+			$this->app = App::query()->find( $app ) ?? $this->app;
+		}
+		else {
+			$this->app = $app;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Set runtime vars from $attributes
+	 *
+	 * @param array $attributes
+	 * @return array
+	 */
+	protected function setFixedAttributes( $attributes ) {
+		if ( !empty( $attributes[ '__app' ] ) ) {
+			$this->setApp( $attributes[ '__app' ] );
+
+			if ( $attributes[ '__app' ] instanceof Model ) {
+				$attributes[ '__app' ] = $attributes[ '__app' ]->getAttributes();
+			}
+		}
+
+		$return = parent::setFixedAttributes( $attributes );
+
+		$this->setConnection( $this->getConnectionName() );
+
+		return $return;
 	}
 
 	/**
@@ -160,10 +166,6 @@ class Resource extends Model
 		$model = new static( (array)$attributes );
 
 		$model->exists = $exists;
-
-		$model->setConnection(
-			$this->getConnectionName()
-		);
 
 		return $model;
 	}

@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Database\Models\App;
+use App\Http\Core\ModelController;
 use App\Http\Responses\ApiJsonResponse;
 use Illuminate\Http\JsonResponse;
 use App\Http\Request;

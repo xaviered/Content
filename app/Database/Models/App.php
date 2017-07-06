@@ -1,6 +1,7 @@
 <?php
 namespace App\Database\Models;
 
+use App\Database\Core\Model;
 use App\Database\Observers\AppObserver;
 
 /**

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Core;
 
 use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiSearchFilter;
 use App\Http\Responses\ApiJsonResponse;
-use App\Database\Models\Model;
+use App\Database\Core\Model;
 use App\Http\Request;
 
 /**
@@ -24,7 +24,7 @@ abstract class ModelController extends Controller
 	/**
 	 * Display the specified resource.
 	 *
-	 * @param  \App\Database\Models\Model $model
+	 * @param  \App\Database\Core\Model $model
 	 * @return ApiJsonResponse
 	 */
 	public function showModel( Model $model ) {
@@ -35,7 +35,7 @@ abstract class ModelController extends Controller
 	 * Update the specified resource in storage.
 	 *
 	 * @param  Request $request
-	 * @param  Model $model
+	 * @param  \App\Database\Core\Model $model
 	 * @return ApiJsonResponse
 	 */
 	public function updateModel( Request $request, Model $model ) {
@@ -51,7 +51,7 @@ abstract class ModelController extends Controller
 	/**
 	 * Remove the specified resource from storage.
 	 *
-	 * @param  Model $model
+	 * @param  \App\Database\Core\Model $model
 	 * @return ApiJsonResponse
 	 */
 	public function destroyModel( Model $model ) {

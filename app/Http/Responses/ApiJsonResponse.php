@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Responses;
 
-use App\Database\Models\Model;
+use App\Database\Core\Model;
 use Illuminate\Http\JsonResponse;
 use \Illuminate\Database\Eloquent\Collection;
 
@@ -13,7 +13,7 @@ class ApiJsonResponse extends JsonResponse
 {
 	/**
 	 * ApiJsonResponse constructor.
-	 * @param \App\Database\Models\Model|Collection $model Model or collection
+	 * @param \App\Database\Core\Model|Collection $model Model or collection
 	 * @param int $status
 	 * @param array $headers
 	 * @param int $options
