@@ -5,28 +5,93 @@ use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiModelFilter;
 use App\Database\Observers\ModelObserver;
 use App\Http\Request;
+use App\Support\Traits\HasRelations;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use ixavier\Libraries\Core\RestfulRecord;
 use ixavier\Libraries\Http\XUrl;
 
 /**
  * Class Model has a one-to-one relationship between a request on the API to a record in the DB
  *
- * @package App\Database\Models
+ * @internal int $id
+ * @internal string $slug
+ * @internal string $title
+ * @internal string $type
+ *
+ * @package App\Database\Core
  */
-abstract class Model extends Record
+abstract class Model extends Moloquent
 {
-	// basic vars
-	public $id;
-	public $title;
-	public $type;
-	public $slug;
+	use SoftDeletes;
+	use HasRelations;
+
+	/** Key for created date */
+	const CREATED_AT = 'createdOn';
+
+	/** Key for deleted date. FYI, updatedBy will be the user that deleted too. */
+	const DELETED_AT = 'deletedOn';
+
+	/** Key for last updated date */
+	const UPDATED_AT = 'updatedOn';
+
+	/** @var bool Do not increment primary key */
+	public $incrementing = false;
+
+	/** @var array Casts these properties to a type of value */
+	protected $casts = [
+		'createdBy' => 'string',
+		'createdOn' => 'datetime',
+		'updatedBy' => 'string',
+		'updatedOn' => 'datetime',
+	];
+
+	/**
+	 * The attributes that should be mutated to dates.
+	 *
+	 * @var array
+	 */
+	protected $dates = [ 'deletedOn' ];
+
+	/** @var \Closure[] An array of dynamic relationship functions */
+	protected $dynamicRelations = [];
+
+	/** @var array Don't guard any field and allow anything */
+	protected $guarded = [ 'id' ];
+
+	/** @var string All primary keys will be slugs */
+	protected $primaryKey = 'slug';
+
+	/** @var array Validation rules for the current model */
+	protected $validationRules = [];
 
 	/** @var array|XUrl|string */
 	private $__fixedAttributes;
 
-	/** @var array Validation rules for the current model */
-	protected $validationRules = [];
+	/**
+	 * Creates new model with default values if they are not present on $attributes
+	 *
+	 * @param array $attributes
+	 * @return static
+	 */
+	public static function create( array $attributes = [] ) {
+		$time = time();
+		$userId = Auth::user() ? Auth::user()->id : 1;
+
+		$attributes = array_merge(
+			$attributes,
+			[
+				'createdBy' => $userId,
+				'createdOn' => $time,
+				'updatedBy' => $userId,
+				'updatedOn' => $time
+			]
+		);
+
+		return new static( $attributes );
+	}
 
 	/**
 	 * API array representation of this model
@@ -97,10 +162,20 @@ abstract class Model extends Record
 	 * @throws \Illuminate\Database\Eloquent\MassAssignmentException
 	 */
 	public function fill( array $attributes ) {
-		$this->__fixedAttributes = $attributes = RestfulRecord::fixAttributes( $attributes );
+		$attributes = $this->setFixedAttributes( $attributes );
 		$attributes = RestfulRecord::cleanAttributes( $attributes );
 
 		return parent::fill( $attributes );
+	}
+
+	protected function setFixedAttributes( $attributes ) {
+		$attributes = RestfulRecord::fixAttributes( $attributes );
+
+		// save only special attributes
+		$specialAttributes = array_combine( RestfulRecord::$specialAttributes, RestfulRecord::$specialAttributes );
+		$this->__fixedAttributes = array_intersect_key( $attributes, $specialAttributes );
+
+		return $attributes;
 	}
 
 	// @todo: Remove from DB any attributes that are set to `null`
@@ -112,6 +187,23 @@ abstract class Model extends Record
 	 */
 	public function getDirty() {
 		return parent::getDirty();
+	}
+
+	/**
+	 * Marks this model as deleted
+	 *
+	 * @return void
+	 */
+	protected function runSoftDelete() {
+		$query = $this->newQueryWithoutScopes()->where( $this->getKeyName(), $this->getKey() );
+
+		$this->{$this->getDeletedAtColumn()} = $time = $this->freshTimestamp();
+
+		$updateQuery = [
+			'slug' => $this->slug .= '_deleted_' . $time,
+			$this->getDeletedAtColumn() => $this->fromDateTime( $time )
+		];
+		$query->update( $updateQuery );
 	}
 
 	/**

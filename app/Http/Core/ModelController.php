@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Core;
 
 use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiSearchFilter;

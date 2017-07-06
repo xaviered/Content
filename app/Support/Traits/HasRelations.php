@@ -58,7 +58,9 @@ trait HasRelations
 					if ( isset( $resultsCallback ) ) {
 						$resultsCallback( $col );
 					}
-					$cols[ $itemRelationKey ] = $col;
+					if ( $col ) {
+						$cols[ $itemRelationKey ] = $col;
+					}
 
 				}
 				$relations[ $attribute ] = $this->newCollection( $cols );

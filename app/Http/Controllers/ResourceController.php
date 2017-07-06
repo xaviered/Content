@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Database\Models\App;
 use App\Database\Models\Resource;
+use App\Http\Core\ModelController;
 use App\Http\Request;
 use App\Http\Responses\ApiJsonResponse;
 use Illuminate\Http\JsonResponse;

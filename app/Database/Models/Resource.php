@@ -24,31 +24,6 @@ class Resource extends Model
 	protected $table = 'content';
 
 	/**
-	 * Resource constructor.
-	 *
-	 * @param array $attributes
-	 * @param App|string $app Load resource from the given app (or slug of app)
-	 */
-	public function __construct( $attributes = [] ) {
-		parent::__construct( $attributes );
-
-		$fixedAttributes = $this->getFixedAttributes();
-
-		// load app
-		if ( !empty( $fixedAttributes[ '__app' ] ) ) {
-			if ( is_string( $fixedAttributes[ '__app' ] ) ) {
-				$this->app = App::query()
-					->where( [ 'slug' => $fixedAttributes[ '__app' ] ] )
-					->firstOrFail()
-				;
-			}
-			else {
-				$this->app = $fixedAttributes[ '__app' ];
-			}
-		}
-	}
-
-	/**
 	 * Perform tasks once for all App models
 	 */
 //	public static function boot() {
@@ -112,10 +87,40 @@ class Resource extends Model
 	}
 
 	/**
-	 * @param App $app
+	 * @param App|string $app App or slug of app
+	 * @return $this Chainable method.
 	 */
-	public function setApp( App $app ) {
-		$this->app = $app;
+	public function setApp( $app ) {
+		if ( is_string( $app ) ) {
+			$this->app = App::query()->find( $app ) ?? $this->app;
+		}
+		else {
+			$this->app = $app;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Set runtime vars from $attributes
+	 *
+	 * @param array $attributes
+	 * @return array
+	 */
+	protected function setFixedAttributes( $attributes ) {
+		if ( !empty( $attributes[ '__app' ] ) ) {
+			$this->setApp( $attributes[ '__app' ] );
+
+			if ( $attributes[ '__app' ] instanceof Model ) {
+				$attributes[ '__app' ] = $attributes[ '__app' ]->getAttributes();
+			}
+		}
+
+		$return = parent::setFixedAttributes( $attributes );
+
+		$this->setConnection( $this->getConnectionName() );
+
+		return $return;
 	}
 
 	/**
@@ -161,10 +166,6 @@ class Resource extends Model
 		$model = new static( (array)$attributes );
 
 		$model->exists = $exists;
-
-		$model->setConnection(
-			$this->getConnectionName()
-		);
 
 		return $model;
 	}
