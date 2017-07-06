@@ -35,4 +35,7 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+	'content' => [
+		'url' => 'http://content.ixavier.app/api'
+	]
 ];

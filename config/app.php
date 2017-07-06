@@ -12,7 +12,7 @@ return [
     | any other location as required by the application or its packages.
     */
 
-    'name' => 'Laravel',
+    'name' => 'ixavier/content',
 
     /*
     |--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'http://content.ixavier.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -124,6 +124,18 @@ return [
 
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
 
+	/*
+	|--------------------------------------------------------------------------
+	| Scheme name
+	|--------------------------------------------------------------------------
+	|
+	| When parsing custom ixavier URLs (XUrl), use this service name to
+	| determine local service/site.
+	|
+	*/
+
+	'serviceName' => 'content',
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
@@ -177,6 +189,10 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+	    /*
+	     * MongoDB provider
+	     */
+	    \Plugins\Mongodb\MongodbServiceProvider::class,
     ],
 
     /*
@@ -211,6 +227,7 @@ return [
         'Lang' => Illuminate\Support\Facades\Lang::class,
         'Log' => Illuminate\Support\Facades\Log::class,
         'Mail' => Illuminate\Support\Facades\Mail::class,
+	    'Moloquent' => 'Jenssegers\Mongodb\Model',
         'Notification' => Illuminate\Support\Facades\Notification::class,
         'Password' => Illuminate\Support\Facades\Password::class,
         'Queue' => Illuminate\Support\Facades\Queue::class,
