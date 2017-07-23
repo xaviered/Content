@@ -5,13 +5,13 @@ use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiModelFilter;
 use App\Database\Observers\ModelObserver;
 use App\Http\Request;
-use App\Support\Traits\HasRelations;
+use App\Support\Traits\HasRelationships;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
 use ixavier\Libraries\Core\RestfulRecord;
-use ixavier\Libraries\Http\XUrl;
+use ixavier\Libraries\Http\XURL;
 
 /**
  * Class Model has a one-to-one relationship between a request on the API to a record in the DB
@@ -26,7 +26,7 @@ use ixavier\Libraries\Http\XUrl;
 abstract class Model extends Moloquent
 {
 	use SoftDeletes;
-	use HasRelations;
+	use HasRelationships;
 
 	/** Key for created date */
 	const CREATED_AT = 'createdOn';
@@ -67,7 +67,7 @@ abstract class Model extends Moloquent
 	/** @var array Validation rules for the current model */
 	protected $validationRules = [];
 
-	/** @var array|XUrl|string */
+	/** @var array|XURL|string */
 	private $__fixedAttributes;
 
 	/**
@@ -96,19 +96,19 @@ abstract class Model extends Moloquent
 	/**
 	 * API array representation of this model
 	 *
-	 * @param int $relationsDepth Current depth of relations loaded. Default = 1
+	 * @param int $relationshipsDepth Current depth of relations loaded. Default = 1
 	 * @param bool $hideSelfLinkQuery Don't add query info to self link for Models
 	 * @return array
 	 */
-	public function toApiArray( $relationsDepth = 0, $hideSelfLinkQuery = false ) {
+	public function toApiArray( $relationshipsDepth = 0, $hideSelfLinkQuery = false ) {
 		// load relations
-		$relations = [];
+		$relationships = [];
 
 		if ( !request( 'ignore_relations' ) ) {
-			if ( $relationsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
-				$relations = $this
-						->getCollectionRelations()
-						->toApiArray( $relationsDepth, true, true, true )[ 'data' ] ?? [];
+			if ( $relationshipsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
+				$relationships = $this
+						->getCollectionRelationships()
+						->toApiArray( $relationshipsDepth, true, true, true )[ 'data' ] ?? [];
 			}
 		}
 
@@ -116,7 +116,7 @@ abstract class Model extends Moloquent
 
 		$modelArray = [
 			'data' => $this->attributesToArray(),
-			'relations' => $relations,
+			'relationships' => $relationships,
 			'links' => [
 				'self' => $hideSelfLinkQuery ? $r->url() : $r->fullUrl()
 			]
@@ -168,6 +168,11 @@ abstract class Model extends Moloquent
 		return parent::fill( $attributes );
 	}
 
+	/**
+	 * Set runtime vars
+	 * @param array $attributes
+	 * @return array
+	 */
 	protected function setFixedAttributes( $attributes ) {
 		$attributes = RestfulRecord::fixAttributes( $attributes );
 
@@ -255,7 +260,7 @@ abstract class Model extends Moloquent
 	/**
 	 * Gets fixed attributes, without being cleaned, so we can create more instances like these
 	 *
-	 * @return array|XUrl|string
+	 * @return array|XURL|string
 	 */
 	protected function getFixedAttributes() {
 		return $this->__fixedAttributes;

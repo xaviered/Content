@@ -5,22 +5,22 @@ use App\Database\Collections\ModelCollection;
 use App\Database\Models\Resource;
 use Illuminate\Database\Eloquent\Builder;
 use ixavier\Libraries\Core\RestfulRecord;
-use ixavier\Libraries\Http\ContentXUrl;
-use ixavier\Libraries\Http\XUrl;
+use ixavier\Libraries\Http\ContentXURL;
+use ixavier\Libraries\Http\XURL;
 use ixavier\Libraries\RestfulRecords\App;
 
 /**
- * Class HasRelations keeps all functionality for Model's relations
+ * Class HasRelationships keeps all functionality for Model's relations
  *
  * @package App\Database\Models
  */
-trait HasRelations
+trait HasRelationships
 {
 	/**
 	 * @return ModelCollection
 	 */
-	public function getCollectionRelations() {
-		return $this->newCollection( $this->loadRelations()->getRelations() );
+	public function getCollectionRelationships() {
+		return $this->newCollection( $this->loadRelationships()->getRelations() );
 	}
 
 	/**
@@ -28,9 +28,9 @@ trait HasRelations
 	 * @param bool $force
 	 * @return $this Chainnable method
 	 */
-	public function loadRelations( $force = false ) {
+	public function loadRelationships( $force = false ) {
 		if ( $force || empty( $this->relations ) ) {
-			$this->setRelations( $this->retrieveRelations() );
+			$this->setRelations( $this->retrieveRelationships() );
 		}
 
 		return $this;
@@ -42,9 +42,9 @@ trait HasRelations
 	 *
 	 * @return ModelCollection[]
 	 */
-	protected function retrieveRelations() {
+	protected function retrieveRelationships() {
 		$relations = [];
-		$relationQueries = $this->getRelationshipQueryBuilder();
+		$relationQueries = $this->getRelationshipsQueryBuilder();
 		// @todo: Try to optimize this query so that it only executes one query, not all of them individually
 		foreach ( $relationQueries as $attribute => $relationQueryInfo ) {
 			list( $relationQuery, $resultsCallback ) = $relationQueryInfo;
@@ -71,7 +71,7 @@ trait HasRelations
 				if ( isset( $resultsCallback ) ) {
 					$resultsCallback( $col );
 				}
-				$cols[ $attribute ] = $col;
+				$relations[ $attribute ] = $col;
 			}
 		}
 
@@ -83,13 +83,13 @@ trait HasRelations
 	 *
 	 * @return Builder[]|RestfulRecord[]|Builder[][]|RestfulRecord[][]
 	 */
-	protected function getRelationshipQueryBuilder() {
+	protected function getRelationshipsQueryBuilder() {
 		$r = [];
 		foreach ( $this->attributes as $attrKey => $attrValue ) {
 			if ( is_string( $attrValue ) ) {
-				$xUrl = XUrl::create( $attrValue );
+				$xUrl = XURL::create( $attrValue );
 				if ( $xUrl->isValid() ) {
-					$rel = $this->getRelationQuery( $xUrl, $attrKey );
+					$rel = $this->getRelationshipsQuery( $xUrl, $attrKey );
 					if ( $rel ) {
 						$r[ $attrKey ] = $rel;
 					}
@@ -98,9 +98,9 @@ trait HasRelations
 			else if ( is_array( $attrValue ) ) {
 				foreach ( $attrValue as $relUrl ) {
 					if ( is_string( $relUrl ) ) {
-						$xUrl = XUrl::create( $relUrl );
+						$xUrl = XURL::create( $relUrl );
 						if ( $xUrl->isValid() ) {
-							$queryBuilder = $this->getRelationQuery( $xUrl, $attrKey );
+							$queryBuilder = $this->getRelationshipsQuery( $xUrl, $attrKey );
 							// @todo: Create new query with union
 							if ( $queryBuilder ) {
 								if ( $queryBuilder ) {
@@ -117,28 +117,28 @@ trait HasRelations
 	}
 
 	/**
-	 * Given a XUrl, will get a Closure to get query to obtain relation
+	 * Given a XURL, will get a Closure to get query to obtain relation
 	 *
-	 * @param XUrl $xUrl
-	 * @return Builder|RestfulRecord|null Returns null if no valid relation found
+	 * @param XURL $xUrl
+	 * @return Builder|RestfulRecord|array|null Returns null if no valid relation found
 	 */
-	protected function getRelationQuery( XUrl $xUrl ) {
+	protected function getRelationshipsQuery( XURL $xUrl ) {
 		if ( $xUrl->service == config( 'app.serviceName' ) ) {
-			return $this->getContentRelationQuery( ...func_get_args() );
+			return $this->getContentRelationshipsQuery( ...func_get_args() );
 		}
 
 		return null;
 	}
 
 	/**
-	 * Given a ContentXUrl, will get a Closure to get query to obtain relation
+	 * Given a ContentXURL, will get a Closure to get query to obtain relation
 	 *
-	 * @param ContentXUrl $xUrl
+	 * @param ContentXURL $xUrl
 	 * @return array Returns null if no valid relation found
 	 *  First arg: Builder|RestfulRecord|null
 	 *  Second arg: \Closure callback after getting results
 	 */
-	protected function getContentRelationQuery( ContentXUrl $xUrl ) {
+	protected function getContentRelationshipsQuery( ContentXURL $xUrl ) {
 		// @todo: check for same domain and so on
 		$localService = true;
 
@@ -181,7 +181,7 @@ trait HasRelations
 		else if ( !empty( $xUrl->type ) ) {
 			// local service
 			if ( $localService ) {
-				/** @var ContentXUrl $xUrl */
+				/** @var ContentXURL $xUrl */
 				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
@@ -200,7 +200,7 @@ trait HasRelations
 		else if ( !empty( $xUrl->app ) ) {
 			// local service
 			if ( $localService ) {
-				/** @var ContentXUrl $xUrl */
+				/** @var ContentXURL $xUrl */
 				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
@@ -229,7 +229,7 @@ trait HasRelations
 		else {
 			// local service
 			if ( $localService ) {
-				/** @var ContentXUrl $xUrl */
+				/** @var ContentXURL $xUrl */
 				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				$parentAttr[ '__app' ] = $this;
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
