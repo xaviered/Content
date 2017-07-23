@@ -1,11 +1,11 @@
 {
-    "name": "ixavier/content",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "name": "ixavier/Content",
+    "description": "Content service for iXavier framework.",
+    "keywords": ["iXavier", "iXavier content"],
     "license": "MIT",
     "type": "project",
     "require": {
-        "ixavier/Libraries": "~0.1",
+        "ixavier/Libraries": "~0",
         "php": ">=7",
         "jenssegers/mongodb": "^3.1",
         "laravel/framework": "5.4.*",
