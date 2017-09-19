@@ -68,7 +68,7 @@ return [
 
 		'mongodb' => [
 			'driver' => 'mongodb',
-			'host' => env( 'DB_HOST', 'localhost' ),
+			'host' => env( 'DB_HOST', 'content-data' ),
 			'port' => env( 'DB_PORT', 27017 ),
 			'database' => env( 'DB_DATABASE', 'l5' ),
 			'username' => env( 'DB_USERNAME', 'l5' ),

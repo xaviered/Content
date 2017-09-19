@@ -4,10 +4,10 @@ namespace App\Support\Traits;
 use App\Database\Collections\ModelCollection;
 use App\Database\Models\Resource;
 use Illuminate\Database\Eloquent\Builder;
-use ixavier\Libraries\Core\RestfulRecord;
-use ixavier\Libraries\Http\ContentXURL;
-use ixavier\Libraries\Http\XURL;
-use ixavier\Libraries\RestfulRecords\App;
+use ixavier\Libraries\Server\Core\RestfulRecord;
+use ixavier\Libraries\Server\Http\ContentXURL;
+use ixavier\Libraries\Server\Http\XURL;
+use ixavier\Libraries\Server\RestfulRecords\App;
 
 /**
  * Class HasRelationships keeps all functionality for Model's relations

@@ -5,8 +5,8 @@ use App\Database\Core\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
-use ixavier\Libraries\Core\ModelCollection as X_ModelCollection;
-use ixavier\Libraries\Core\RestfulRecord;
+use ixavier\Libraries\Server\Core\ModelCollection as X_ModelCollection;
+use ixavier\Libraries\Server\Core\RestfulRecord;
 
 /**
  * Class ModelCollection serves as a custom collection for models

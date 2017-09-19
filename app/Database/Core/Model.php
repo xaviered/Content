@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Jenssegers\Mongodb\Eloquent\Model as Moloquent;
-use ixavier\Libraries\Core\RestfulRecord;
-use ixavier\Libraries\Http\XURL;
+use ixavier\Libraries\Server\Core\RestfulRecord;
+use ixavier\Libraries\Server\Http\XURL;
 
 /**
  * Class Model has a one-to-one relationship between a request on the API to a record in the DB
