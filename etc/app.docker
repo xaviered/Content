@@ -1,0 +1,61 @@
+FROM php:7.1-fpm
+
+# install essentials
+RUN apt-get update -y && apt-get install -y \
+		build-essential \
+		sysfsutils \
+		apt-utils \
+		debconf-utils \
+		autoconf \
+		nano \
+		wget \
+		curl \
+		pkg-config \
+		git \
+		git-core \
+		libcurl4-openssl-dev \
+		zlib1g-dev \
+		libicu-dev \
+		g++ \
+		awscli \
+		make \
+		libsasl2-dev \
+		libssl-dev \
+		unzip \
+	&& docker-php-ext-install zip \
+    && docker-php-ext-install intl
+
+# install mongodb
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 \
+  && echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list \
+  && apt-get update \
+  && apt-get install -y mongodb-org --no-install-recommends \
+  && pecl install mongodb \
+  && docker-php-ext-enable mongodb \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# install libs
+WORKDIR /var/www/ixavier/Services/Libraries
+COPY Services/Libraries ./
+
+# install code
+WORKDIR /var/www/ixavier/Services/Content
+COPY Services/Content ./
+
+# prepare for github auth
+ARG GITHUB_TOKEN
+ARG GITHUB_AUTH_URL="https://$GITHUB_TOKEN:x-oauth-basic@github.com/xaviered"
+RUN git config --global url.$GITHUB_AUTH_URL.insteadOf https://github.com/xaviered
+RUN composer config --global github-protocols https
+
+# install code dependencies
+RUN composer update
+RUN composer dump-autoload --optimize
+RUN composer clear-cache
+
+# initiate users
+RUN mongo data.content.ixavier.docker:27017/admin etc/db-init.js
