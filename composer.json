@@ -54,6 +54,9 @@
         "post-update-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postUpdate",
             "php artisan optimize"
+        ],
+        "db-init": [
+            "dockerize -wait tcp://data.content.ixavier.docker:27017 -timeout 1200s -wait-retry-interval 5s mongo data.content.ixavier.docker:27017/admin etc/db-init.js"
         ]
     },
     "config": {

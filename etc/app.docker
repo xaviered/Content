@@ -25,6 +25,12 @@ RUN apt-get update -y && apt-get install -y \
 	&& docker-php-ext-install zip \
     && docker-php-ext-install intl
 
+# install dockerize
+ENV DOCKERIZE_VERSION v0.5.0
+RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+
 # install mongodb
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 \
   && echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list \
@@ -56,6 +62,3 @@ RUN composer config --global github-protocols https
 RUN composer update
 RUN composer dump-autoload --optimize
 RUN composer clear-cache
-
-# initiate users
-RUN mongo data.content.ixavier.docker:27017/admin etc/db-init.js
