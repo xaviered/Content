@@ -15,7 +15,7 @@ COPY Services/Content ./
 ADD Services/Content/etc/vhost.conf /etc/nginx/sites-enabled/vhost.conf
 
 # add certificates
-COPY server/cert/ixavier.com/ /etc/nginx/ssl/ixavier.com/
+COPY etc/cert/ixavier.com/ /etc/nginx/ssl/ixavier.com/
 
 # install code dependencies
 RUN composer update
