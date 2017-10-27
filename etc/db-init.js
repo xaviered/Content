@@ -1,4 +1,4 @@
-if (db.system.users.find({user: "ixavier_user"}).count() == 0) {
+if (db.system.users.find({user: "ixavier_user"}).count() === 0) {
     db.createUser(
         {
             user: "ixavier_user",

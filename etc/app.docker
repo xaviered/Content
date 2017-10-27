@@ -1,48 +1,7 @@
-FROM php:7.1-fpm
+ARG DOCKER_REGISTRY_URL
+ARG GITHUB_TOKEN
 
-# install essentials
-RUN apt-get update -y && apt-get install -y \
-		build-essential \
-		sysfsutils \
-		apt-utils \
-		debconf-utils \
-		autoconf \
-		nano \
-		wget \
-		curl \
-		pkg-config \
-		git \
-		git-core \
-		libcurl4-openssl-dev \
-		zlib1g-dev \
-		libicu-dev \
-		g++ \
-		awscli \
-		make \
-		libsasl2-dev \
-		libssl-dev \
-		unzip \
-	&& docker-php-ext-install zip \
-    && docker-php-ext-install intl
-
-# install dockerize
-ENV DOCKERIZE_VERSION v0.5.0
-RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-
-# install mongodb
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 \
-  && echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list \
-  && apt-get update \
-  && apt-get install -y mongodb-org --no-install-recommends \
-  && pecl install mongodb \
-  && docker-php-ext-enable mongodb \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+FROM ${DOCKER_REGISTRY_URL}/ixavier/php-nginx:latest
 
 # install libs
 WORKDIR /var/www/ixavier/Services/Libraries
@@ -52,11 +11,11 @@ COPY Services/Libraries ./
 WORKDIR /var/www/ixavier/Services/Content
 COPY Services/Content ./
 
-# prepare for github auth
-ARG GITHUB_TOKEN
-ARG GITHUB_AUTH_URL="https://$GITHUB_TOKEN:x-oauth-basic@github.com/xaviered"
-RUN git config --global url.$GITHUB_AUTH_URL.insteadOf https://github.com/xaviered
-RUN composer config --global github-protocols https
+# config web app
+ADD Services/Content/etc/vhost.conf /etc/nginx/sites-enabled/vhost.conf
+
+# add certificates
+COPY server/cert/ixavier.com/ /etc/nginx/ssl/ixavier.com/
 
 # install code dependencies
 RUN composer update
