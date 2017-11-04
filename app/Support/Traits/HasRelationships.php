@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Support\Traits;
 
 use App\Database\Collections\ModelCollection;
@@ -37,6 +38,7 @@ trait HasRelationships
 	}
 
 	// @todo: Make sure we always return an array of Collections
+
 	/**
 	 * Load and get all relations for the model.
 	 *
@@ -46,12 +48,15 @@ trait HasRelationships
 		$relations = [];
 		$relationQueries = $this->getRelationshipsQueryBuilder();
 		// @todo: Try to optimize this query so that it only executes one query, not all of them individually
+		// @todo: use graphql.org
 		foreach ( $relationQueries as $attribute => $relationQueryInfo ) {
-			list( $relationQuery, $resultsCallback ) = $relationQueryInfo;
 			// many relationships
-			if ( is_array( $relationQuery ) ) {
+			if ( is_array( $relationQueryInfo ) && is_array( $relationQueryInfo[ 0 ] ) ) {
 				$cols = [];
 				foreach ( $relationQueryInfo as $itemRelationKey => $itemRelationInfo ) {
+					if ( !isset( $itemRelationInfo[ 1 ] ) ) {
+						$itemRelationInfo[ 1 ] = null;
+					}
 					/** @var Builder $itemRelationQuery */
 					list( $itemRelationQuery, $resultsCallback ) = $itemRelationInfo;
 					$col = $itemRelationQuery->get();
@@ -67,6 +72,7 @@ trait HasRelationships
 			}
 			// one relationship
 			else {
+				list( $relationQuery, $resultsCallback ) = $relationQueryInfo;
 				$col = $this->newCollection( $relationQuery->get()->getDictionary() );
 				if ( isset( $resultsCallback ) ) {
 					$resultsCallback( $col );
@@ -149,7 +155,7 @@ trait HasRelationships
 			if ( $localService ) {
 				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
 				// @todo: Find better way to get the app from a resource
-				$parentAttr[ '__app' ] = method_exists( $this, 'getApp' ) ? $this->getApp() : $this;
+				$parentAttr[ '__app' ] = $this->getApp();
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
 				if ( $params->count() ) {
@@ -183,7 +189,7 @@ trait HasRelationships
 			if ( $localService ) {
 				/** @var ContentXURL $xUrl */
 				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
-				$parentAttr[ '__app' ] = $this;
+				$parentAttr[ '__app' ] = $this->getApp();
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
 				if ( $params->count() ) {
@@ -192,6 +198,7 @@ trait HasRelationships
 
 				return [ Resource::query( $parentAttr )->where( $attributes ) ];
 			}
+			// external content service
 			else {
 				return [ RestfulRecord::query( $xUrl ) ];
 			}
@@ -202,7 +209,7 @@ trait HasRelationships
 			if ( $localService ) {
 				/** @var ContentXURL $xUrl */
 				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
-				$parentAttr[ '__app' ] = $this;
+				$parentAttr[ '__app' ] = $this->getApp();
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
 				if ( $params->count() ) {
@@ -216,6 +223,7 @@ trait HasRelationships
 					}
 				];
 			}
+			// external content service
 			else {
 				return [
 					App::query( $xUrl ),
@@ -231,7 +239,7 @@ trait HasRelationships
 			if ( $localService ) {
 				/** @var ContentXURL $xUrl */
 				$parentAttr = $xUrl->getRestfulRecordAttributes( true );
-				$parentAttr[ '__app' ] = $this;
+				$parentAttr[ '__app' ] = $this->getApp();
 				$attributes = RestfulRecord::cleanAttributes( $parentAttr );
 				$params = $xUrl->getQueryParameterBag();
 				if ( $params->count() ) {
@@ -240,6 +248,7 @@ trait HasRelationships
 
 				return [ App::query( $parentAttr )->where( $attributes ) ];
 			}
+			// external content service
 			else {
 				return [ App::query( $xUrl ) ];
 			}

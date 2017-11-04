@@ -165,7 +165,9 @@ abstract class Model extends Moloquent
 		$attributes = $this->setFixedAttributes( $attributes );
 		$attributes = RestfulRecord::cleanAttributes( $attributes );
 
-		return parent::fill( $attributes );
+		parent::fill( $attributes );
+
+		return $this;
 	}
 
 	/**

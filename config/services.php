@@ -36,6 +36,6 @@ return [
     ],
 
 	'content' => [
-		'url' => 'http://content.ixavier.app/api'
+		'url' => 'http://content.ixavier.docker/api'
 	]
 ];

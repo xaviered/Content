@@ -54,4 +54,12 @@ class App extends Model
 
 		return 'a_' . $this->slug;
 	}
+
+	/**
+	 * Helper method
+	 * @return $this
+	 */
+	public function getApp() {
+		return $this;
+	}
 }
