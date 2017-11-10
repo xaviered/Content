@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Database\Models;
 
 use App\Database\Core\Model;
@@ -94,7 +95,7 @@ class Resource extends Model
 		if ( is_string( $app ) ) {
 			$this->app = App::query()->find( $app ) ?? $this->app;
 		}
-		else {
+		else if ( !( $this instanceof App ) ) {
 			$this->app = $app;
 		}
 
