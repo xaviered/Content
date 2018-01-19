@@ -42,7 +42,8 @@
     },
     "scripts": {
         "post-root-package-install": [
-            "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "dockerize -wait tcp://content-data:27017 -timeout 1200s -wait-retry-interval 5s mongo content-data:27017/admin etc/db-init.js"
         ],
         "post-create-project-cmd": [
             "php artisan key:generate"
@@ -54,9 +55,6 @@
         "post-update-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postUpdate",
             "php artisan optimize"
-        ],
-        "db-init": [
-            "dockerize -wait tcp://content-data:27017 -timeout 1200s -wait-retry-interval 5s mongo content-data:27017/admin etc/db-init.js"
         ]
     },
     "config": {
