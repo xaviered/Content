@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Responses;
 
+use App\Database\Collections\ModelCollection;
 use App\Database\Core\Model;
 use Illuminate\Http\JsonResponse;
 use \Illuminate\Database\Eloquent\Collection;
@@ -25,9 +26,8 @@ class ApiJsonResponse extends JsonResponse
 			if ( $model instanceof Model ) {
 				$response = $model->toApiArray();
 			}
-			else if ( $model instanceof Collection ) {
+			else if ( $model instanceof ModelCollection ) {
 				$response = $model->toApiArray();
-
 			}
 			else {
 				$response = [ 'data' => $model ];

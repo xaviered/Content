@@ -31,7 +31,7 @@ trait HasRelations
 	 */
 	public function loadRelations( $force = false ) {
 		if ( $force || empty( $this->relations ) ) {
-			$this->setRelations( $this->retrieverelations() );
+			$this->setRelations( $this->retrieveRelations() );
 		}
 
 		return $this;
@@ -46,7 +46,7 @@ trait HasRelations
      */
     public function getRelation( $relationKey, $returnInCollectionByKey = null ) {
         /** @var ModelCollection $relation */
-        $relation = $this->getRelations()->get( $relationKey );
+        $relation = $this->getCollectionRelations()->get( $relationKey );
         if ( $relation && $returnInCollectionByKey ) {
             $relation = $relation->keyBy( $returnInCollectionByKey );
         }
@@ -74,9 +74,9 @@ trait HasRelations
 	 *
 	 * @return ModelCollection[]
 	 */
-	protected function retrieverelations() {
+	protected function retrieveRelations() {
 		$relations = [];
-		$relationQueries = $this->getrelationsQueryBuilder();
+		$relationQueries = $this->getRelationsQueryBuilder();
 		// @todo: Try to optimize this query so that it only executes one query, not all of them individually
 		// @todo: use graphql.org
 		foreach ( $relationQueries as $attribute => $relationQueryInfo ) {
@@ -119,13 +119,13 @@ trait HasRelations
 	 *
 	 * @return Builder[]|RestfulRecord[]|Builder[][]|RestfulRecord[][]
 	 */
-	protected function getrelationsQueryBuilder() {
+	protected function getRelationsQueryBuilder() {
 		$r = [];
 		foreach ( $this->attributes as $attrKey => $attrValue ) {
 			if ( is_string( $attrValue ) ) {
 				$xUrl = XURL::create( $attrValue );
 				if ( $xUrl->isValid() ) {
-					$rel = $this->getrelationsQuery( $xUrl, $attrKey );
+					$rel = $this->getRelationsQuery( $xUrl, $attrKey );
 					if ( $rel ) {
 						$r[ $attrKey ] = $rel;
 					}
@@ -136,7 +136,7 @@ trait HasRelations
 					if ( is_string( $relUrl ) ) {
 						$xUrl = XURL::create( $relUrl );
 						if ( $xUrl->isValid() ) {
-							$queryBuilder = $this->getrelationsQuery( $xUrl, $attrKey );
+							$queryBuilder = $this->getRelationsQuery( $xUrl, $attrKey );
 							// @todo: Create new query with union
 							if ( $queryBuilder ) {
 								if ( $queryBuilder ) {
@@ -158,9 +158,9 @@ trait HasRelations
 	 * @param XURL $xUrl
 	 * @return Builder|RestfulRecord|array|null Returns null if no valid relation found
 	 */
-	protected function getrelationsQuery( XURL $xUrl ) {
+	protected function getRelationsQuery( XURL $xUrl ) {
 		if ( $xUrl->service == config( 'app.serviceName' ) ) {
-			return $this->getContentrelationsQuery( ...func_get_args() );
+			return $this->getContentRelationsQuery( $xUrl->clone('ContentXURL') );
 		}
 
 		return null;
@@ -174,7 +174,7 @@ trait HasRelations
 	 *  First arg: Builder|RestfulRecord|null
 	 *  Second arg: \Closure callback after getting results
 	 */
-	protected function getContentrelationsQuery( ContentXURL $xUrl ) {
+	protected function getContentRelationsQuery( ContentXURL $xUrl ) {
 		// @todo: check for same domain and so on
 		$localService = true;
 
