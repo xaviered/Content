@@ -5,7 +5,7 @@ use App\Database\Collections\ModelCollection;
 use App\Database\Filters\ApiModelFilter;
 use App\Database\Observers\ModelObserver;
 use App\Http\Request;
-use App\Support\Traits\HasRelationships;
+use App\Support\Traits\HasRelations;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +14,7 @@ use ixavier\Libraries\Server\Core\RestfulRecord;
 use ixavier\Libraries\Server\Http\XURL;
 
 /**
- * Class Model has a one-to-one relationship between a request on the API to a record in the DB
+ * Class Model has a one-to-one relation between a request on the API to a record in the DB
  *
  * @internal int $id
  * @internal string $slug
@@ -26,7 +26,7 @@ use ixavier\Libraries\Server\Http\XURL;
 abstract class Model extends Moloquent
 {
 	use SoftDeletes;
-	use HasRelationships;
+	use HasRelations;
 
 	/** Key for created date */
 	const CREATED_AT = 'createdOn';
@@ -55,7 +55,7 @@ abstract class Model extends Moloquent
 	 */
 	protected $dates = [ 'deletedOn' ];
 
-	/** @var \Closure[] An array of dynamic relationship functions */
+	/** @var \Closure[] An array of dynamic relation functions */
 	protected $dynamicRelations = [];
 
 	/** @var array Don't guard any field and allow anything */
@@ -96,19 +96,19 @@ abstract class Model extends Moloquent
 	/**
 	 * API array representation of this model
 	 *
-	 * @param int $relationshipsDepth Current depth of relations loaded. Default = 1
+	 * @param int $relationsDepth Current depth of relations loaded. Default = 1
 	 * @param bool $hideSelfLinkQuery Don't add query info to self link for Models
 	 * @return array
 	 */
-	public function toApiArray( $relationshipsDepth = 0, $hideSelfLinkQuery = false ) {
+	public function toApiArray( $relationsDepth = 0, $hideSelfLinkQuery = false ) {
 		// load relations
-		$relationships = [];
+		$relations = [];
 
 		if ( !request( 'ignore_relations' ) ) {
-			if ( $relationshipsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
-				$relationships = $this
-						->getCollectionRelationships()
-						->toApiArray( $relationshipsDepth, true, true, true )[ 'data' ] ?? [];
+			if ( $relationsDepth < intval( request( 'relations_max_depth', 1 ) ) ) {
+				$relations = $this
+						->getCollectionRelations()
+						->toApiArray( $relationsDepth, true, true, true )[ 'data' ] ?? [];
 			}
 		}
 
@@ -116,7 +116,7 @@ abstract class Model extends Moloquent
 
 		$modelArray = [
 			'data' => $this->attributesToArray(),
-			'relationships' => $relationships,
+			'relations' => $relations,
 			'links' => [
 				'self' => $hideSelfLinkQuery ? $r->url() : $r->fullUrl()
 			]

@@ -11,17 +11,17 @@ use ixavier\Libraries\Server\Http\XURL;
 use ixavier\Libraries\Server\RestfulRecords\App;
 
 /**
- * Class HasRelationships keeps all functionality for Model's relations
+ * Class HasRelations keeps all functionality for Model's relations
  *
  * @package App\Database\Models
  */
-trait HasRelationships
+trait HasRelations
 {
 	/**
 	 * @return ModelCollection
 	 */
-	public function getCollectionRelationships() {
-		return $this->newCollection( $this->loadRelationships()->getRelations() );
+	public function getCollectionRelations() {
+		return $this->newCollection( $this->loadRelations()->getRelations() );
 	}
 
 	/**
@@ -29,13 +29,43 @@ trait HasRelationships
 	 * @param bool $force
 	 * @return $this Chainnable method
 	 */
-	public function loadRelationships( $force = false ) {
+	public function loadRelations( $force = false ) {
 		if ( $force || empty( $this->relations ) ) {
-			$this->setRelations( $this->retrieveRelationships() );
+			$this->setRelations( $this->retrieverelations() );
 		}
 
 		return $this;
 	}
+
+    /**
+     * Gets relation object on this record.
+     *
+     * @param string $relationKey
+     * @param string $returnInCollectionByKey Will wrap output in ModelCollection with the given column as its main key.
+     * @return ModelCollection|RestfulRecord Empty ModelCollection if no relation found. Use `$this->hasRelation()` to truly find out if there is a relation.
+     */
+    public function getRelation( $relationKey, $returnInCollectionByKey = null ) {
+        /** @var ModelCollection $relation */
+        $relation = $this->getRelations()->get( $relationKey );
+        if ( $relation && $returnInCollectionByKey ) {
+            $relation = $relation->keyBy( $returnInCollectionByKey );
+        }
+        else if ( empty( $relation ) ) {
+            $relation = new ModelCollection();
+        }
+
+        return $relation;
+    }
+
+    /**
+     * Checks if there is an existing relation
+     *
+     * @param string $relationKey
+     * @return bool
+     */
+    public function hasRelation( $relationKey ) {
+        return $this->getCollectionRelations()->offsetExists( $relationKey );
+    }
 
 	// @todo: Make sure we always return an array of Collections
 
@@ -44,13 +74,13 @@ trait HasRelationships
 	 *
 	 * @return ModelCollection[]
 	 */
-	protected function retrieveRelationships() {
+	protected function retrieverelations() {
 		$relations = [];
-		$relationQueries = $this->getRelationshipsQueryBuilder();
+		$relationQueries = $this->getrelationsQueryBuilder();
 		// @todo: Try to optimize this query so that it only executes one query, not all of them individually
 		// @todo: use graphql.org
 		foreach ( $relationQueries as $attribute => $relationQueryInfo ) {
-			// many relationships
+			// many relations
 			if ( is_array( $relationQueryInfo ) && is_array( $relationQueryInfo[ 0 ] ) ) {
 				$cols = [];
 				foreach ( $relationQueryInfo as $itemRelationKey => $itemRelationInfo ) {
@@ -70,7 +100,7 @@ trait HasRelationships
 				}
 				$relations[ $attribute ] = $this->newCollection( $cols );
 			}
-			// one relationship
+			// one relation
 			else {
 				list( $relationQuery, $resultsCallback ) = $relationQueryInfo;
 				$col = $this->newCollection( $relationQuery->get()->getDictionary() );
@@ -89,13 +119,13 @@ trait HasRelationships
 	 *
 	 * @return Builder[]|RestfulRecord[]|Builder[][]|RestfulRecord[][]
 	 */
-	protected function getRelationshipsQueryBuilder() {
+	protected function getrelationsQueryBuilder() {
 		$r = [];
 		foreach ( $this->attributes as $attrKey => $attrValue ) {
 			if ( is_string( $attrValue ) ) {
 				$xUrl = XURL::create( $attrValue );
 				if ( $xUrl->isValid() ) {
-					$rel = $this->getRelationshipsQuery( $xUrl, $attrKey );
+					$rel = $this->getrelationsQuery( $xUrl, $attrKey );
 					if ( $rel ) {
 						$r[ $attrKey ] = $rel;
 					}
@@ -106,7 +136,7 @@ trait HasRelationships
 					if ( is_string( $relUrl ) ) {
 						$xUrl = XURL::create( $relUrl );
 						if ( $xUrl->isValid() ) {
-							$queryBuilder = $this->getRelationshipsQuery( $xUrl, $attrKey );
+							$queryBuilder = $this->getrelationsQuery( $xUrl, $attrKey );
 							// @todo: Create new query with union
 							if ( $queryBuilder ) {
 								if ( $queryBuilder ) {
@@ -128,9 +158,9 @@ trait HasRelationships
 	 * @param XURL $xUrl
 	 * @return Builder|RestfulRecord|array|null Returns null if no valid relation found
 	 */
-	protected function getRelationshipsQuery( XURL $xUrl ) {
+	protected function getrelationsQuery( XURL $xUrl ) {
 		if ( $xUrl->service == config( 'app.serviceName' ) ) {
-			return $this->getContentRelationshipsQuery( ...func_get_args() );
+			return $this->getContentrelationsQuery( ...func_get_args() );
 		}
 
 		return null;
@@ -144,11 +174,11 @@ trait HasRelationships
 	 *  First arg: Builder|RestfulRecord|null
 	 *  Second arg: \Closure callback after getting results
 	 */
-	protected function getContentRelationshipsQuery( ContentXURL $xUrl ) {
+	protected function getContentrelationsQuery( ContentXURL $xUrl ) {
 		// @todo: check for same domain and so on
 		$localService = true;
 
-		// one-to-one relationship with resource
+		// one-to-one relation with resource
 		if ( !empty( $xUrl->resource ) ) {
 
 			// local service
@@ -179,11 +209,11 @@ trait HasRelationships
 				];
 			}
 		}
-		// many-to-many relationships stored on collection
+		// many-to-many relations stored on collection
 		else if ( $xUrl->type == 'collection' ) {
 
 		}
-		// one-to-many relationships with resources of the given type under an app
+		// one-to-many relations with resources of the given type under an app
 		else if ( !empty( $xUrl->type ) ) {
 			// local service
 			if ( $localService ) {
@@ -203,7 +233,7 @@ trait HasRelationships
 				return [ RestfulRecord::query( $xUrl ) ];
 			}
 		}
-		// one-to-one relationship with app
+		// one-to-one relation with app
 		else if ( !empty( $xUrl->app ) ) {
 			// local service
 			if ( $localService ) {
@@ -233,7 +263,7 @@ trait HasRelationships
 				];
 			}
 		}
-		// one-to-many relationships with apps
+		// one-to-many relations with apps
 		else {
 			// local service
 			if ( $localService ) {
@@ -256,4 +286,17 @@ trait HasRelationships
 
 		return null;
 	}
+
+    /**
+     * @inheritdoc
+     */
+    public function __call($method, $parameters)
+    {
+        // load relation
+        if ($this->hasRelation($method)) {
+            return $this->getRelation($method, ...$parameters);
+        }
+
+        return parent::__call($method, $parameters);
+    }
 }

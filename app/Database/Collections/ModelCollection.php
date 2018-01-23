@@ -24,22 +24,22 @@ class ModelCollection extends Collection
 	/**
 	 * API array representation of this collection
 	 *
-	 * @param int $relationshipsDepth Current depth of relations loaded. Default = 1
+	 * @param int $relationsDepth Current depth of relations loaded. Default = 1
 	 * @param bool $hideLinks Hide links section
 	 * @param bool $withKeys Show keys for Collections
 	 * @param bool $ignorePaging Will not load paging mechanism
 	 * @return array
 	 */
-	public function toApiArray( $relationshipsDepth = -1, $hideLinks = false, $withKeys = false, $ignorePaging = false ) {
+	public function toApiArray( $relationsDepth = -1, $hideLinks = false, $withKeys = false, $ignorePaging = false ) {
 		$count = 0;
 		$modelsArray = [];
 		$paginator = $ignorePaging ? $this : $this->paginate();
 		foreach ( $paginator as $itemKey => $item ) {
 			if ( $item instanceof self || $item instanceof X_ModelCollection ) {
-				$item = $item->toApiArray( $relationshipsDepth + 1, true, false, true )[ 'data' ] ?? [];
+				$item = $item->toApiArray( $relationsDepth + 1, true, false, true )[ 'data' ] ?? [];
 			}
 			else if ( $item instanceof Model || $item instanceof RestfulRecord ) {
-				$item = $item->toApiArray( $relationshipsDepth + 1, true );
+				$item = $item->toApiArray( $relationsDepth + 1, true );
 			}
 
 			$modelsArray[ 'data' ][ $withKeys ? $itemKey : $count ] = $item;
