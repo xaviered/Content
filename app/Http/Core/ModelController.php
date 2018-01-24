@@ -48,13 +48,15 @@ abstract class ModelController extends Controller
 		return new ApiJsonResponse( $model );
 	}
 
-	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  \App\Database\Core\Model $model
-	 * @return ApiJsonResponse
-	 */
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Database\Core\Model $model
+     * @return ApiJsonResponse
+     * @throws \Exception
+     */
 	public function destroyModel( Model $model ) {
+	    // @todo: make sure it also removes all relationships with flag
 		$result = $model->delete();
 		if ( !$result ) {
 			return null;

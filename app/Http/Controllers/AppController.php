@@ -36,12 +36,13 @@ class AppController extends ModelController
 		return $this->showModel( $app );
 	}
 
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @param  Request $request
-	 * @return ApiJsonResponse
-	 */
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  Request $request
+     * @return ApiJsonResponse
+     * @throws \Throwable
+     */
 	public function store( Request $request ) {
 
 		$updates = $request->all();
@@ -64,12 +65,13 @@ class AppController extends ModelController
 		return parent::updateModel( $request, $app );
 	}
 
-	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  App $app
-	 * @return JsonResponse
-	 */
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  App $app
+     * @return JsonResponse
+     * @throws \Exception
+     */
 	public function destroy( App $app ) {
 		return $this->destroyModel( $app );
 	}
