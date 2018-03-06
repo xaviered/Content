@@ -1,0 +1,5 @@
+build:
+  docker:
+    web: etc/Dockerfile
+run:
+  web: /var/www/start-server.sh
