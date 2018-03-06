@@ -20,10 +20,15 @@
     },
     "repositories": [
         {
-            "type": "path",
-            "url": "../Libraries",
-            "options": {
-                "symlink": true
+            "type": "package",
+            "package": {
+                "name": "ixavier/Libraries",
+                "version": "1.0",
+                "source": {
+                    "url": "https://github.com/xaviered/Libraries.git",
+                    "type": "git",
+                    "reference": "master"
+                }
             }
         }
     ],
