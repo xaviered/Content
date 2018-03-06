@@ -1,2 +1,2 @@
 web: /var/www/start-server.sh
-release: composer update -n --optimize-autoloader --prefer-dist --no-suggest
+release: composer install -n --optimize-autoloader --prefer-dist --no-suggest
