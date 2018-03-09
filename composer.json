@@ -22,7 +22,7 @@
     "repositories": [
         {
             "type": "path",
-            "url": "ixavier/Libraries",
+            "url": "../Libraries",
             "options": {
                 "symlink": true
             }
