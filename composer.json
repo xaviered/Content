@@ -20,7 +20,18 @@
         "phpunit/phpunit": "~5.7"
     },
     "repositories": [
-        { "type": "path", "url": "../Libraries", "options": {"symlink": false} }
+        {
+            "type": "package",
+            "package": {
+                "name": "ixavier/Libraries",
+                "version": "0.1",
+                "source": {
+                    "url": "https://github.com/xaviered/Libraries.git",
+                    "type": "git",
+                    "reference": "master"
+                }
+            }
+        }
     ],
     "autoload": {
         "classmap": [
@@ -28,7 +39,8 @@
         ],
         "psr-4": {
             "App\\": "app/",
-            "Plugins\\": "plugins/"
+            "Plugins\\": "plugins/",
+            "ixavier\\Libraries\\" : "vendor/ixavier/Libraries/"
         }
     },
     "autoload-dev": {
