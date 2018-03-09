@@ -19,20 +19,6 @@
         "mockery/mockery": "0.9.*",
         "phpunit/phpunit": "~5.7"
     },
-    "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "name": "ixavier/Libraries",
-                "version": "0.1",
-                "source": {
-                    "url": "https://github.com/xaviered/Libraries.git",
-                    "type": "git",
-                    "reference": "master"
-                }
-            }
-        }
-    ],
     "autoload": {
         "classmap": [
             "database"
@@ -40,7 +26,7 @@
         "psr-4": {
             "App\\": "app/",
             "Plugins\\": "plugins/",
-            "ixavier\\Libraries\\" : "vendor/ixavier/Libraries/"
+            "ixavier\\Libraries\\" : "ixavier/Libraries/"
         }
     },
     "autoload-dev": {
