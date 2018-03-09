@@ -1,11 +1,12 @@
 {
     "name": "ixavier/Content",
+    "version": "1.1",
     "description": "Content service for iXavier framework.",
     "keywords": ["iXavier", "iXavier content"],
     "license": "MIT",
     "type": "project",
     "require": {
-        "ixavier/Libraries": "*",
+        "ixavier/Libraries": "0.1",
         "php": ">=7.1",
         "jenssegers/mongodb": "^3.1",
         "laravel/framework": "5.4.*",
@@ -19,18 +20,7 @@
         "phpunit/phpunit": "~5.7"
     },
     "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "name": "ixavier/Libraries",
-                "version": "1.0",
-                "source": {
-                    "url": "https://github.com/xaviered/Libraries.git",
-                    "type": "git",
-                    "reference": "master"
-                }
-            }
-        }
+        { "type": "path", "url": "../Libraries", "options": {"symlink": false} }
     ],
     "autoload": {
         "classmap": [

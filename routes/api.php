@@ -1,7 +1,6 @@
 <?php
 
-use ixavier\Libraries\Server\Core\RestfulRecord;
-use Illuminate\Http\Request;
+use \ixavier\Libraries\Server\Core\RestfulRecord;
 use Illuminate\Support\Facades\Route;
 use App\Database\Models\App as AppModel;
 use App\Database\Models\Resource as ResourceModel;
