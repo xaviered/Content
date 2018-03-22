@@ -18,6 +18,7 @@ COPY etc/cert/ixavier.com/ /etc/nginx/ssl/ixavier.com/
 
 # install code dependencies
 USER root:root
-RUN composer install -n --optimize-autoloader --prefer-dist --no-suggest
+RUN composer update --optimize-autoloader
+#RUN composer install -n --optimize-autoloader --prefer-dist --no-suggest
 
 EXPOSE 443
