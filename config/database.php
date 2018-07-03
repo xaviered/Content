@@ -71,8 +71,8 @@ return [
 			'host' => env( 'DB_HOST', 'content-data' ),
 			'port' => env( 'DB_PORT', 27017 ),
 			'database' => env( 'DB_DATABASE', 'l5' ),
-			'username' => env( 'DB_USERNAME', 'l5' ),
-			'password' => env( 'DB_PASSWORD', '12345' ),
+//			'username' => env( 'DB_USERNAME', 'l5' ),
+//			'password' => env( 'DB_PASSWORD', '12345' ),
 
 			'options' => [
 				'db' => 'admin' // sets the authentication database required by mongo 3
