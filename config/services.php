@@ -35,7 +35,11 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
-	'content' => [
-		'url' => 'http://content.ixavier.docker/api'
-	]
+    'content' => [
+        'url' => env('CONTENT_SERVICE_URL'),
+        'credentials' => [
+            'email' => env('CONTENT_SERVICE_EMAIL'),
+            'password' => env('CONTENT_SERVICE_PASSWORD'),
+        ],
+    ],
 ];
