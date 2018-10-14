@@ -37,9 +37,8 @@ class RootController extends AuthController
         $response = parent::login($request)->getOriginalContent();
         if (!isset($response['success'])) {
             $request->session()->flash('error', $response['error'] ?? 'Could not login');
-        }
-        else {
-            $request->session()->flash('message', 'Token: ' . $response['data']['token']);
+        } else {
+            $request->session()->flash('message', 'Token: '.$response['data']['token']);
         }
 
         return redirect('/login');

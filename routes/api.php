@@ -17,9 +17,11 @@ use App\Database\Models\Resource as ResourceModel;
 */
 
 // API authentication
-Route::post('register', 'AuthController@register');
 Route::post('login', 'AuthController@login');
 Route::post('recover', 'AuthController@recover');
+
+// @todo: lock this down!
+Route::post('register', 'AuthController@register');
 
 // Authentication
 Route::group(['middleware' => ['jwt.auth']], function() {
